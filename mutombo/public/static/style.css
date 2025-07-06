@@ -1,0 +1,76 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  background-color: #aaa;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden; /* optional, if you want to block scroll bars */
+}
+
+#page-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden; /* optional, if you want to block scroll bars */
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  width: 100vw;
+}
+
+.center-content-hv-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center; /* horizontal */
+  align-items: center;     /* vertical */
+  height: 100vh;            /* fill viewport height */
+}
+
+.center-content-hv-col:first-child {
+  gap: 3rem
+}
+
+.bg-dark-soft {
+  background-color: #aaa;
+  color: #111111
+}
+
+.bg-dark-medium {
+  background-color: #383838;
+  color: #f4f4f4
+}
+
+.bg-dark-hard {
+  background-color: #111;
+  color: #f4f4f4
+}
+
+.contour {
+  outline: 1px solid #FFFFFF;
+  outline-offset: 0px;
+}
+
+.contour-red {
+  outline: 3px solid #ed2020;
+  outline-offset: 0px;
+}
+
+.rounded {
+  -webkit-border-radius: 50px;
+  border-radius: 50px;
+}
+
+.drop-shadow {
+  -webkit-box-shadow: 0 0 25px 1px rgba(0,0,0,.4);
+  box-shadow: 0 0 25px 1px rgba(0,0,0,.4);
+}
