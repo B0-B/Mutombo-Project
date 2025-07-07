@@ -8,12 +8,12 @@
           "id": "moving-container-navigation",
           "blur": 2,
           "position": [
-            564,
-            168
+            277,
+            213
           ],
           "size": [
-            200,
-            200
+            400,
+            100
           ]
         }
       }

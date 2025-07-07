@@ -43,8 +43,8 @@ async function download (filename) {
  */
 function focusContainer (container) {
     // Move all containers to background 
-    for (let containerName in state.dashboard.containers)
-        document.getElementById(state.dashboard.containers[containerName].id).style.zIndex = 999;
+    for (let containerName in state.elements)
+        state.elements[containerName].style.zIndex = 999;
     // Bring selected container to front
     container.element.style.zIndex = 1000;
 }
@@ -92,8 +92,11 @@ export class movingContainer {
         if (!name in state.dashboard.containers)
             state.dashboard.containers[name] = this.info;
         // Otherwise use the persistent state coordinates 
-        else
+        else {
+            console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
             autoPlaceContainer(name);
+        }
+            
 
 
         // Style the element
@@ -195,7 +198,7 @@ async function autoPlaceContainer (containerName) {
  * Loads the navigation container.
  */
 async function loadNavigation () {
-    let navi = new movingContainer('navigation');
+    let navi = new movingContainer('navigation', [400,100]);
     autoPlaceContainer('navigation');
 }
 

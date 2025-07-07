@@ -13,7 +13,6 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
     
     const app       =   express();
     
-
     // Global authentication variable
     var config      = await loadJSON('config.json'); // load the config file
     var upload      = multer({ dest: 'data/img/' });
