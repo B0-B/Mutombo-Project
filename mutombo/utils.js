@@ -13,10 +13,11 @@ async function loadJSON(path) {
 /**
  * Saves a JavaScript object as formatted JSON to a file
  * @param {string} path - Destination file path
- * @param {Object} data - JavaScript object to save
+ * @param {Object} data - JSON object to save
  * @returns {Promise<void>}
  */
 async function saveJSON(path, data) {
+  console.log('Saving to', path, 'with data:', data);
   const json = JSON.stringify(data, null, 2); // pretty-print with indentation
   await fs.writeFile(path, json, 'utf8');
 }

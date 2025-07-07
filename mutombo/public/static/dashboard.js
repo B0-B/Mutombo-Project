@@ -17,7 +17,7 @@ function create (tag, id, parent_id) {
 
 /**
  * Downloads a requested file from the server and returns the upload URL.
- * The URL can be used in elements like <img src="..."> or <video src="...">
+ * The URL can be used in containers like <img src="..."> or <video src="...">
  * @param {string} filename - The name of the file to request. 
  * @returns {string} - Returns the uploaded blob URL.
  */
@@ -37,14 +37,14 @@ async function download (filename) {
 
 /**
  * Downloads a requested file from the server and returns the upload URL.
- * The URL can be used in elements like <img src="..."> or <video src="...">
+ * The URL can be used in containers like <img src="..."> or <video src="...">
  * @param {string} filename - The name of the file to request. 
  * @returns {string} - Returns the uploaded blob URL.
  */
 function focusContainer (container) {
     // Move all containers to background 
-    for (let containerName in state.dashboard.elements)
-        document.getElementById(state.dashboard.elements[containerName].id).style.zIndex = 999;
+    for (let containerName in state.dashboard.containers)
+        document.getElementById(state.dashboard.containers[containerName].id).style.zIndex = 999;
     // Bring selected container to front
     container.element.style.zIndex = 1000;
 }
@@ -54,7 +54,7 @@ function focusContainer (container) {
  * @param {HTMLElement} container - The container which to save.
  */
 function saveContainerState (container) {
-    state.dashboard.elements[container.info.name] = container.info;
+    state.dashboard.containers[container.info.name] = container.info;
     // Send change to server
     // fetch the result from state endpoint
     fetch('/state', {
@@ -84,6 +84,17 @@ export class movingContainer {
 
         // Create element.
         this.element = create('span', this.info.id, 'page-dashboard');
+        // Register element in dashboard state.
+        if (name in state.elements)
+            throw new Error(`Element "${name}" exists already!`);
+        state.elements[name] = this.element;
+        // Check if the container info was forwarded to state
+        if (!name in state.dashboard.containers)
+            state.dashboard.containers[name] = this.info;
+        // Otherwise use the persistent state coordinates 
+        else
+            autoPlaceContainer(name);
+
 
         // Style the element
         this.element.style.position = 'absolute';
@@ -99,13 +110,6 @@ export class movingContainer {
 
         // Add content
         this.element.innerHTML = content;
-
-        // Check if the name is unique in dashboard state.
-        // If it does not exist 
-        if (name in state.dashboard.elements)
-            throw new Error(`Element "${name}" exists already!`);
-        else
-            state.dashboard.elements[name] = this.info;
         
         // Drag and drop mechanics.
         this.clickOffset = [0, 0]; // relative mouse position internal element.
@@ -125,7 +129,7 @@ export class movingContainer {
         document.addEventListener('mouseup', (e) => {
             this.draggingActive = false;
             // Once the mouse is released save the position and save the state
-            this.info.position      = [e.pageX, e.pageY];
+            this.info.position      = [e.pageX - this.clickOffset[0], e.pageY - this.clickOffset[1]];
             saveContainerState(this);
         });
         document.addEventListener('mousemove', (e) => {
@@ -153,6 +157,7 @@ async function loadState () {
     // Override global state variable
     if (_state)
         state.dashboard = _state.dashboard;
+    console.log('state', state)
 }
 
 
@@ -173,8 +178,25 @@ async function loadBackground (element) {
     }
 }
 
+/**
+ * Places container automatically, according to coordinates in state object.
+ * @param {string} containerName - The name of the container e.g. "navigation" 
+ */
+async function autoPlaceContainer (containerName) {
+    const containerInfo = state.dashboard.containers[containerName];
+    const container = document.getElementById(containerInfo.id)
+    const pos = containerInfo.position;
+    console.log('pos', pos);
+    container.style.left = pos[0] + 'px';
+    container.style.top = pos[1] + 'px';
+}
+
+/**
+ * Loads the navigation container.
+ */
 async function loadNavigation () {
     let navi = new movingContainer('navigation');
+    autoPlaceContainer('navigation');
 }
 
 export async function dashPage (params) {
@@ -188,7 +210,7 @@ export async function dashPage (params) {
     const page = create('div', 'page-dashboard', 'app');
 
     // Run init tasks
-    loadState();
+    await loadState();
     loadBackground(page);
     loadNavigation();
 }

@@ -97,7 +97,7 @@ export async function authPage () {
     // Check if session is still authenticated.
     if (await isAuthenticated()) {
         state.authenticated = true;
-        console.log('login successful.');
+        console.log('login still active.');
         return
     }
 
@@ -209,14 +209,13 @@ export async function authPage () {
             // Shake container
             shakeIt(container, .1, 0.01, 10, 2);
         }
-
         return
     });
 
     // Block until authentication
     while (!state.authenticated)
         await new Promise(r => setTimeout(r, 100));
-    console.log('login successful.');
+    
 
     // Wait a second to welcome a new user
     // Notify complete signup.

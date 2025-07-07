@@ -78,9 +78,12 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
 
     // State change endpoint.
     app.use(express.json());
-    app.post('/state', (req, res) => {
+    app.post('/state', async (req, res) => {
         // Serve the most recent state.
         if (req.body.mode == 'get') {
+            // Source the config
+            config = await loadJSON('config.json');
+            // Respond with state data
             return res.json({data: config.state})
         }
         // Complete override option
@@ -92,8 +95,8 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
         // Container override option
         else if (req.body.mode == 'container') {
             const container_info = req.body.data;
-            config.state.dashboard.elements[container_info.name] = req.body.data;
-            saveConfig(); // Save the config persistently.
+            config.state.dashboard.containers[container_info.name] = req.body.data;
+            saveConfig(config); // Save the config persistently.
             return res.json({status: true})
         }
     });

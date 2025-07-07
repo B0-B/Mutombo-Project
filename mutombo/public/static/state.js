@@ -4,8 +4,9 @@ export class DashboardState {
     this.stats = {};
     this.messages = [];
     this.downloads = [];
+    this.elements = {};
     this.dashboard = {
-      elements: {}
+      containers: {}
     }
   }
 }
