@@ -1,205 +1,89 @@
 import { state } from './state.js';
+import { download, saveContainerState, loadBackground, loadState, getSearchEndpoint } from './api.js';
+import { create, movingContainer, focusContainer, autoPlaceContainer } from './container.js';
 
-/**
- * Allows to quickly create alements and assign identifiers
- * @param {string} tag - DOM tag type e.g. "div"
- * @param {string} id - DOM identifier e.g. "my-container"
- * @param {string} parent_id - DOM identifier of parent element
- * @returns {HTMLElement} - Returns the just created DOM object.
- */
-function create (tag, id, parent_id) {
-    const   el = document.createElement(tag);
-            el.id = id;
-    if (parent_id) document.getElementById(parent_id).appendChild(el);
-    return el;
-}
-
-
-/**
- * Downloads a requested file from the server and returns the upload URL.
- * The URL can be used in containers like <img src="..."> or <video src="...">
- * @param {string} filename - The name of the file to request. 
- * @returns {string} - Returns the uploaded blob URL.
- */
-async function download (filename) {
-    const response = await fetch(`download/${filename}`);
-    // Check for errors.
-    if (!response.ok)
-        throw new Error('File not found!');
-    // Load image into the session
-    const blob = await response.blob(); // large object structure for video, images, sound etc.
-    const url = URL.createObjectURL(blob);
-    // Register download in dashboard state
-    state.downloads.push(url);
-    // Return url only
-    return url
-}
-
-/**
- * Downloads a requested file from the server and returns the upload URL.
- * The URL can be used in containers like <img src="..."> or <video src="...">
- * @param {string} filename - The name of the file to request. 
- * @returns {string} - Returns the uploaded blob URL.
- */
-function focusContainer (container) {
-    // Move all containers to background 
-    for (let containerName in state.elements)
-        state.elements[containerName].style.zIndex = 999;
-    // Bring selected container to front
-    container.element.style.zIndex = 1000;
-}
-
-/**
- * Saves the state of the provided container in global state object.
- * @param {HTMLElement} container - The container which to save.
- */
-function saveContainerState (container) {
-    state.dashboard.containers[container.info.name] = container.info;
-    // Send change to server
-    // fetch the result from state endpoint
-    fetch('/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'container', data: container.info })
-    });
-}
-
-/**
- * Creates a drag-able UI container in the dashboard which can serve HTML content.
- * The container will register in the dashboard state and server.
- * @param {string} name - Unique container name which will define it identifier as "moving-container-<name>"
- * @param {Array[int]} size - Container size in pixels e.g. [200, 400].
- * @param {string} content - The inner html content to display.
- */
-export class movingContainer {
-
-    constructor (name, size=[200, 200], content="") {
-
-        this.info = {};
-        this.info.name = name;
-        this.info.id = `moving-container-${name}`;
-        this.info.blur = 2; // background blur in pixel
-        this.info.position = [200, 200];
-        this.info.size = size;
-
-        // Create element.
-        this.element = create('span', this.info.id, 'page-dashboard');
-        // Register element in dashboard state.
-        if (name in state.elements)
-            throw new Error(`Element "${name}" exists already!`);
-        state.elements[name] = this.element;
-        // Check if the container info was forwarded to state
-        if (!name in state.dashboard.containers)
-            state.dashboard.containers[name] = this.info;
-        // Otherwise use the persistent state coordinates 
-        else {
-            console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
-            autoPlaceContainer(name);
-        }
-            
-
-
-        // Style the element
-        this.element.style.position = 'absolute';
-        this.element.style.display = 'block';
-        this.element.style.backgroundColor = 'rgba(0,0,0,0.4)';
-        this.element.style.left     = this.info.position[0] + 'px';
-        this.element.style.top      = this.info.position[1] + 'px';
-        this.element.style.width  = this.info.size[0] + 'px';
-        this.element.style.height = this.info.size[1] + 'px';
-        this.element.style.webkitBackdropFilter = `blur(${this.info.blur}px)`; // For Safari
-        this.element.style.backdropFilter = `blur(${this.info.blur}px)`;
-        this.element.classList.add('rounded', 'contour');
-
-        // Add content
-        this.element.innerHTML = content;
-        
-        // Drag and drop mechanics.
-        this.clickOffset = [0, 0]; // relative mouse position internal element.
-        // While the mouse is down on element (left click) and moving update the element position.
-        this.draggingActive = false;
-        // Arrow functions preserve `this` object.
-        // Define the event listeners correspondingly.
-        this.element.addEventListener('mousedown', (e) => {
-            // Raise the element to front
-            focusContainer(this);
-            // Activate dragging on left click action.
-            if (e.button === 0) this.draggingActive = true;
-            // Set the offset
-            this.clickOffset = [e.offsetX, e.offsetY];
-            
-        });
-        document.addEventListener('mouseup', (e) => {
-            this.draggingActive = false;
-            // Once the mouse is released save the position and save the state
-            this.info.position      = [e.pageX - this.clickOffset[0], e.pageY - this.clickOffset[1]];
-            saveContainerState(this);
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!this.draggingActive) return;
-            this.element.style.left = `${e.pageX - this.clickOffset[0]}px`;
-            this.element.style.top  = `${e.pageY - this.clickOffset[1]}px`;
-        });
-    }
-}
-
-
-/**
- * Loads the persistent dashboard state from server to client backend.
- * @param {HTMLElement} element - The name of the file to request. 
- */
-async function loadState () {
-    // fetch the result from state endpoint
-    const res = await fetch('/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'get' })
-    });
-    const result = await res.json();
-    let _state = result.data;
-    // Override global state variable
-    if (_state)
-        state.dashboard = _state.dashboard;
-    console.log('state', state)
-}
-
-
-/**
- * Loads the dashboard background image into provided HTML element.
- * @param {HTMLElement} element - The name of the file to request. 
- */
-async function loadBackground (element) {
-    const filename = 'dashboard-background';
-    for (let ext of ['.jpg', '.jpeg', '.png']) {
-        try {
-            let blobURL = await download(filename + ext);
-            element.style.backgroundImage = `url(${blobURL})`;
-            return
-        } catch (error) {
-            //
-        }
-    }
-}
-
-/**
- * Places container automatically, according to coordinates in state object.
- * @param {string} containerName - The name of the container e.g. "navigation" 
- */
-async function autoPlaceContainer (containerName) {
-    const containerInfo = state.dashboard.containers[containerName];
-    const container = document.getElementById(containerInfo.id)
-    const pos = containerInfo.position;
-    console.log('pos', pos);
-    container.style.left = pos[0] + 'px';
-    container.style.top = pos[1] + 'px';
-}
 
 /**
  * Loads the navigation container.
  */
 async function loadNavigation () {
-    let navi = new movingContainer('navigation', [400,100]);
+
+    // Parameters
+    const navWidth  = 500;
+    const navHeight = 60;
+    const navElementHeight = Math.floor(0.6 * navHeight);
+    const navFontSize = Math.floor(0.618**2 * navHeight);
+    const hoverScaleFactor = 1.05;
+
+    // Create navigation and auto-place it
+    let navi = new movingContainer('navigation', [ navWidth, navHeight ]);
     autoPlaceContainer('navigation');
+
+    // ==== Navigation Search Bar ====
+    // ---- HTML Structure ----
+    let searchContainer = create('div', 'nav-search-bar-container', navi.info.id);
+    let searchInput     = create('input', 'nav-search-bar-input', 'nav-search-bar-container');
+    let searchButton    = create('button', 'nav-search-bar-button', 'nav-search-bar-container');
+
+    // Retrieve current search engine endpoint
+    const searchEngineEndpoint = await getSearchEndpoint();
+    console.log('search engine:', searchEngineEndpoint);
+
+    // ---- Styling ----
+    // style container
+    searchContainer.style.display = 'inline-flex';
+    searchContainer.style.alignItems = 'center';
+    searchContainer.style.justifyContent = 'center';
+    searchContainer.style.height = navHeight + 'px';
+    // style input
+    searchInput.placeholder = 'web search ...';
+    searchInput.style.height = navElementHeight + 'px';
+    searchInput.style.fontSize = navFontSize + 'px';
+    searchInput.style.maxWidth = Math.floor(0.4 * navWidth) + 'px';
+    // Event listener for enter key submission, works only while the input is focused.
+    searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            // Optionally prevent form submission if inside a form
+            event.preventDefault();
+            searchButton.click();
+        }
+    });
+    // style search button
+    function renderSVG(height) {
+        return `
+            <svg id="nav-search-bar-search-icon" xmlns="http://www.w3.org/2000/svg"  width="100" height="${height}" viewBox="0 0 128 128">
+                <path fill="white" d="M 52.349609 14.400391 C 42.624609 14.400391 32.9 18.1 25.5 25.5 C 10.7 40.3 10.7 64.399219 25.5 79.199219 C 32.9 86.599219 42.600391 90.300781 52.400391 90.300781 C 62.200391 90.300781 71.900781 86.599219 79.300781 79.199219 C 94.000781 64.399219 93.999219 40.3 79.199219 25.5 C 71.799219 18.1 62.074609 14.400391 52.349609 14.400391 z M 52.300781 20.300781 C 60.500781 20.300781 68.700391 23.399219 74.900391 29.699219 C 87.400391 42.199219 87.4 62.5 75 75 C 62.5 87.5 42.199219 87.5 29.699219 75 C 17.199219 62.5 17.199219 42.199219 29.699219 29.699219 C 35.899219 23.499219 44.100781 20.300781 52.300781 20.300781 z M 52.300781 26.300781 C 45.400781 26.300781 38.9 29 34 34 C 29.3 38.7 26.700391 44.800391 26.400391 51.400391 C 26.300391 53.100391 27.600781 54.4 29.300781 54.5 L 29.400391 54.5 C 31.000391 54.5 32.300391 53.199609 32.400391 51.599609 C 32.600391 46.499609 34.699219 41.799219 38.199219 38.199219 C 41.999219 34.399219 47.000781 32.300781 52.300781 32.300781 C 54.000781 32.300781 55.300781 31.000781 55.300781 29.300781 C 55.300781 27.600781 54.000781 26.300781 52.300781 26.300781 z M 35 64 A 3 3 0 0 0 32 67 A 3 3 0 0 0 35 70 A 3 3 0 0 0 38 67 A 3 3 0 0 0 35 64 z M 83.363281 80.5 C 82.600781 80.5 81.850781 80.800391 81.300781 81.400391 C 80.100781 82.600391 80.100781 84.499609 81.300781 85.599609 L 83.800781 88.099609 C 83.200781 89.299609 82.900391 90.6 82.900391 92 C 82.900391 94.4 83.8 96.700391 85.5 98.400391 L 98.300781 111 C 100.10078 112.8 102.39922 113.69922 104.69922 113.69922 C 106.99922 113.69922 109.29961 112.79961 111.09961 111.09961 C 114.59961 107.59961 114.59961 101.90039 111.09961 98.400391 L 98.300781 85.599609 C 96.600781 83.899609 94.300391 83 91.900391 83 C 90.500391 83 89.2 83.300391 88 83.900391 L 85.5 81.400391 C 84.9 80.800391 84.125781 80.5 83.363281 80.5 z M 91.900391 88.900391 C 92.700391 88.900391 93.5 89.200781 94 89.800781 L 106.69922 102.5 C 107.89922 103.7 107.89922 105.59922 106.69922 106.69922 C 105.49922 107.89922 103.6 107.89922 102.5 106.69922 L 89.800781 94.099609 C 89.200781 93.499609 88.900391 92.700391 88.900391 91.900391 C 88.900391 91.100391 89.200781 90.300781 89.800781 89.800781 C 90.400781 89.200781 91.100391 88.900391 91.900391 88.900391 z"/>
+            </svg>
+        `;
+    }
+    searchButton.style.background = 'rgba(0, 0, 0, 0)';
+    searchButton.style.display = 'inline-flex';
+    searchButton.style.alignItems = 'center';
+    searchButton.style.verticalAlign = 'middle';
+    searchButton.style.justifyContent = 'center';
+    searchButton.style.border = 'none';
+    searchButton.style.outline = 'none';
+    searchButton.style.boxShadow = 'none';
+    searchButton.style.padding = '0';
+    searchButton.style.height = navElementHeight + 'px';
+    searchButton.innerHTML = renderSVG(navElementHeight);
+    searchButton.excited = false;
+    searchButton.addEventListener('mouseover', () => {
+        if (searchButton.excited)
+            return;
+        searchButton.excited = true;
+        searchButton.innerHTML = renderSVG(Math.floor( hoverScaleFactor * navElementHeight ));
+    });
+    searchButton.addEventListener('mouseleave', () => {
+        searchButton.excited = false;
+        searchButton.innerHTML = renderSVG(navElementHeight);
+    });
+    searchButton.addEventListener('click', () => {
+        const query = searchInput.value;
+        // Navigate to search engine endpoint
+        // window.location.href = searchEngineEndpoint + searchInput.value;
+        window.location.href = `${searchEngineEndpoint}?q=${encodeURIComponent(query)}`;
+    });
 }
 
 export async function dashPage (params) {

@@ -1,5 +1,6 @@
 {
   "dashboardName": "Mutombo",
+  "searchEngineURL": "https://www.startpage.com/do/dsearch",
   "state": {
     "dashboard": {
       "containers": {
@@ -8,12 +9,12 @@
           "id": "moving-container-navigation",
           "blur": 2,
           "position": [
-            277,
-            213
+            66,
+            92
           ],
           "size": [
-            400,
-            100
+            500,
+            60
           ]
         }
       }

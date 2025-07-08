@@ -1,3 +1,5 @@
+/* ani.js - Compact Library For DOM Animations */
+
 export function sleep (t) {return new Promise((r)=>setTimeout(r,1e3*t))}
 export function transition (s, steps, type='linear') {
     if ( type == 'linear' ) {

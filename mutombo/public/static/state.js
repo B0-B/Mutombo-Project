@@ -5,6 +5,9 @@ export class DashboardState {
     this.messages = [];
     this.downloads = [];
     this.elements = {};
+    this.search = {
+      searchQueries: {}
+    }
     this.dashboard = {
       containers: {}
     }

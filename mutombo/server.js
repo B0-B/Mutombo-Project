@@ -100,6 +100,20 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
         }
     });
 
+    // Config delivery endpoint.
+    app.use(express.json());
+    app.post('/conf', async (req, res) => {
+        // Check for correct parameter
+        if (!req.body.key)
+            return res.json({msg: "/conf-endpoint: No 'key' parameter specified in request!", data: {}});
+        if (!req.body.key in config)
+            return res.json({msg: `/conf-endpoint: No key found in config with name "${key}"!`, data: {}});
+        const key = req.body.key;
+        const data = config[key];
+        console.log('/conf-endpoint - requested data:', key);
+        return res.json({msg: "Value to key: " + key, data: data})
+    });
+
     // Download endpoint.
     app.use(express.json());
     app.get('/download/:filename', (req, res) => {
@@ -132,5 +146,7 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
     server.listen(3000, () => {
         console.log('🚀 HTTP server running at http://localhost:3000');
     });
+
+
 
 })()
