@@ -103,15 +103,32 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
     // Config delivery endpoint.
     app.use(express.json());
     app.post('/conf', async (req, res) => {
-        // Check for correct parameter
-        if (!req.body.key)
-            return res.json({msg: "/conf-endpoint: No 'key' parameter specified in request!", data: {}});
-        if (!req.body.key in config)
-            return res.json({msg: `/conf-endpoint: No key found in config with name "${key}"!`, data: {}});
-        const key = req.body.key;
-        const data = config[key];
-        console.log('/conf-endpoint - requested data:', key);
-        return res.json({msg: "Value to key: " + key, data: data})
+        const delimiter = '.';
+        if (!req.body.mode)
+            return res.json({msg: `/conf-endpoint: No "mode" parameter specified.`, data: {}});
+        if (req.body.mode == 'get') {
+            // Check for correct parameter
+            // if (!req.body.key)
+            //     return res.json({msg: "/conf-endpoint: No 'key' parameter specified in request!", data: {}});
+            // if (!req.body.key in config)
+            //     return res.json({msg: `/conf-endpoint: No key found in config with name "${key}"!`, data: {}});
+            
+            const keyChain = req.body.key.split('.');
+            let currentKey = null;
+
+            for (let currentKey of keyChain) {
+                const element = array[currentKey];
+                
+            }
+            const data = config[key];
+            console.log('/conf-endpoint - requested data:', key);
+            return res.json({msg: "Value to key: " + key, data: data})
+        }
+
+        else if (mode == 'set') {
+
+        }
+        
     });
 
     // Download endpoint.
