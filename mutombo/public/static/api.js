@@ -25,14 +25,16 @@ export async function download (filename) {
 
 /**
  * Retrieves general value corr. to provided key defined in server-side config file.
- * @param {string} key - The key to request.
+ * @param {string} mode - Request mode "get" or "set".
+ * @param {string} key - The key to request. Multiple keys can be chained as key1.key2.key3...
+ * @param {any} data - The data value to set at the key path (for set mode only).
  * @returns {any} - Returns the corr. config value.
  */
-export async function getConfig (key) {
+export async function config (mode, key, data={}) {
     const res = await fetch('/conf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: key })
+        body: JSON.stringify({ key: key, mode: mode, data: data })
     });
     return (await res.json()).data;
 }
@@ -42,7 +44,7 @@ export async function getConfig (key) {
  * @returns {string} - Returns the search engine URL.
  */
 export async function getSearchEndpoint () {
-    return await getConfig("searchEngineURL");
+    return await config("get", "searchEngineURL");
 }
 
 

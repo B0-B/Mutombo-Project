@@ -106,27 +106,27 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
         const delimiter = '.';
         if (!req.body.mode)
             return res.json({msg: `/conf-endpoint: No "mode" parameter specified.`, data: {}});
+        // Get mode for retrieving data from the config.
         if (req.body.mode == 'get') {
-            // Check for correct parameter
-            // if (!req.body.key)
-            //     return res.json({msg: "/conf-endpoint: No 'key' parameter specified in request!", data: {}});
-            // if (!req.body.key in config)
-            //     return res.json({msg: `/conf-endpoint: No key found in config with name "${key}"!`, data: {}});
-            
-            const keyChain = req.body.key.split('.');
-            let currentKey = null;
-
+            const target = "conf." + req.body.key
+            const keyChain      = req.body.key.split(delimiter);
+            let currentValue    = config;
             for (let currentKey of keyChain) {
-                const element = array[currentKey];
-                
+                currentValue = currentValue[currentKey]
             }
-            const data = config[key];
-            console.log('/conf-endpoint - requested data:', key);
-            return res.json({msg: "Value to key: " + key, data: data})
+            const data = currentValue;
+            console.log('/conf-endpoint - requested data target:', target);
+            return res.json({msg: "Value to key: " + target, data: data})
         }
-
+        // Set mode for injecting data into the config.
         else if (mode == 'set') {
-
+            if (!req.body.data)
+                return res.json({msg: `/conf-endpoint: "set"-mode requires "data" parameter which was not specified.`, data: {}});
+            let current = conf;
+            const keyChain      = req.body.key.split(delimiter);
+            for (let currentKey of keyChain.slice(0, -1))
+                current = current[currentKey];
+            current[keyChain[keyChain.length-1]] = req.body.data;
         }
         
     });

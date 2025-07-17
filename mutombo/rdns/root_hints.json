@@ -1,0 +1,80 @@
+[
+  {
+    "hostname": "a.root-servers.net",
+    "ipv4": "198.41.0.4",
+    "ipv6": "2001:503:ba3e::2:30",
+    "operator": "Verisign, Inc."
+  },
+  {
+    "hostname": "b.root-servers.net",
+    "ipv4": "170.247.170.2",
+    "ipv6": "2801:1b8:10::b",
+    "operator": "USC Information Sciences Institute"
+  },
+  {
+    "hostname": "c.root-servers.net",
+    "ipv4": "192.33.4.12",
+    "ipv6": "2001:500:2::c",
+    "operator": "Cogent Communications"
+  },
+  {
+    "hostname": "d.root-servers.net",
+    "ipv4": "199.7.91.13",
+    "ipv6": "2001:500:2d::d",
+    "operator": "University of Maryland"
+  },
+  {
+    "hostname": "e.root-servers.net",
+    "ipv4": "192.203.230.10",
+    "ipv6": "2001:500:a8::e",
+    "operator": "NASA Ames Research Center"
+  },
+  {
+    "hostname": "f.root-servers.net",
+    "ipv4": "192.5.5.241",
+    "ipv6": "2001:500:2f::f",
+    "operator": "Internet Systems Consortium"
+  },
+  {
+    "hostname": "g.root-servers.net",
+    "ipv4": "192.112.36.4",
+    "ipv6": "2001:500:12::d0d",
+    "operator": "U.S. Department of Defense (NIC)"
+  },
+  {
+    "hostname": "h.root-servers.net",
+    "ipv4": "198.97.190.53",
+    "ipv6": "2001:500:1::53",
+    "operator": "U.S. Army Research Lab"
+  },
+  {
+    "hostname": "i.root-servers.net",
+    "ipv4": "192.36.148.17",
+    "ipv6": "2001:7fe::53",
+    "operator": "Netnod (Sweden)"
+  },
+  {
+    "hostname": "j.root-servers.net",
+    "ipv4": "192.58.128.30",
+    "ipv6": "2001:503:c27::2:30",
+    "operator": "Verisign, Inc."
+  },
+  {
+    "hostname": "k.root-servers.net",
+    "ipv4": "193.0.14.129",
+    "ipv6": "2001:7fd::1",
+    "operator": "RIPE NCC (Netherlands)"
+  },
+  {
+    "hostname": "l.root-servers.net",
+    "ipv4": "199.7.83.42",
+    "ipv6": "2001:500:9f::42",
+    "operator": "ICANN"
+  },
+  {
+    "hostname": "m.root-servers.net",
+    "ipv4": "202.12.27.33",
+    "ipv6": "2001:dc3::35",
+    "operator": "WIDE Project (Japan)"
+  }
+]
