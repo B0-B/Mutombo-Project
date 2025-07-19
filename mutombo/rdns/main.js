@@ -1,7 +1,18 @@
-const fs = require('fs');
-const path = require('path');
-const { spawn } = require('child_process');
-const sqlite3 = require('sqlite3').verbose();
+// const fs = require('fs');
+// const path = require('path');
+// const { spawn } = require('child_process');
+// const sqlite3 = require('sqlite3').verbose();
+
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import { spawn } from 'child_process';
+import sqlite3 from 'sqlite3';
+const { verbose } = sqlite3;
+const sqlite3Verbose = verbose();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -61,9 +72,9 @@ async function rootLookup (domain) {
 
 
 /**
- * Recursive DNS server.
+ * Recursive DNS service.
  */
-class RDNS {
+export class RDNS {
   constructor () {
     this.initDatabase();
   }
@@ -72,11 +83,13 @@ class RDNS {
     */
   async initDatabase () {
     this.databasePath = path.resolve(__dirname, 'domains.db');
+    console.log('db path', this.databasePath);
     let initTables = false;
     if (!fs.existsSync(this.databasePath))
         initTables = true
     // Open database in read write mode.
-    this.db = new sqlite3.Database(this.databasePath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
+    
+    this.db = new sqlite3Verbose.Database(this.databasePath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
 
     // Initialize tables.
     if (initTables) {
@@ -206,8 +219,9 @@ class RDNS {
     
 
   }
+
   /**
-    * Alias for lookup.
+    * Alias for RDNS.lookup.
     * @param {string} domain - domain name to resolve.
     * @returns {string} IP address as string.
     */
@@ -229,7 +243,5 @@ class RDNS {
 
 (async () => {
     const r = new RDNS();
-    r.lookup('amazon.com');
-    // r.resetCounts();
-    await sleep(3000)
+    r.resolve('example.com')
 })()

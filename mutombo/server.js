@@ -7,11 +7,14 @@ const http = require('http');
 const express = require('express'); 
 
 const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
-
+const { RDNS } = require('./rdns/main');
 
 (async () => {
     
     const app       =   express();
+
+    // Load RDNS Service
+    var rdns        = new RDNS();
     
     // Global authentication variable
     var config      = await loadJSON('config.json'); // load the config file
@@ -49,7 +52,7 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
         
         // type correction
         if (typeof payload !== 'string')
-            return res.status(400).json({ msg: 'Invalid input', status: false });
+            return res.status(400).json({ msg: '[ERROR] Invalid input', status: false });
         
         // hash the payload
         const hash = _hash(payload);
@@ -71,13 +74,16 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
 
         // Block everything else
         authenticated = false;
-        return res.json({msg: 'Blocked.', status: false});
+        return res.json({msg: '[ERROR] Blocked.', status: false});
 
     });
 
     // State change endpoint.
     app.use(express.json());
     app.post('/state', async (req, res) => {
+        // Login wall. 
+        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        
         // Serve the most recent state.
         if (req.body.mode == 'get') {
             // Source the config
@@ -103,6 +109,9 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
     // Config delivery endpoint.
     app.use(express.json());
     app.post('/conf', async (req, res) => {
+        // Login wall. 
+        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        
         const delimiter = '.';
         if (!req.body.mode)
             return res.json({msg: `/conf-endpoint: No "mode" parameter specified.`, data: {}});
@@ -134,6 +143,9 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
     // Download endpoint.
     app.use(express.json());
     app.get('/download/:filename', (req, res) => {
+        // Login wall. 
+        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        
         // extract filename and file extension
         const filename = req.params.filename;
         const ext = path.extname(filename).toLowerCase();
@@ -153,8 +165,23 @@ const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
 
     // Upload endpoint.
     app.post('/upload', upload.single('image'), (req, res) => {
+        // Login wall. 
+        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        
         console.log('Image received:', req.file.originalname);
         res.json({ msg: 'Image uploaded successfully', status: true });
+    });
+
+    // RDNS endpoint.
+    app.get('/resolve', async (req, res) => {
+        const domain = req.query.domain;
+        if (!domain) return res.status(400).send('[ERROR] Domain is required but was not specified.');
+        try {
+            const result = await new RDNS().lookup(domain);
+            res.json(result);
+        } catch (err) {
+            res.status(500).send(err.message);
+        }
     });
 
 
