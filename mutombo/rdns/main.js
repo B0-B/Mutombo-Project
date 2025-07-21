@@ -8,6 +8,9 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { spawn } from 'child_process';
 import sqlite3 from 'sqlite3';
+import { log } from '../utils.js'
+
+
 const { verbose } = sqlite3;
 const sqlite3Verbose = verbose();
 
@@ -38,57 +41,41 @@ function system (command, args) {
     });
 }
 
-
-/**
- * Performs a recursive DNS lookup via root servers and returns a list of resolved IPs.
- * @param {string} domain - domain name e.g. google.com, not google.com/
- * @returns {Promise<Object<Array<string>>>} Object with two lists for IPv4 and IPv6 addresses.
- */
-async function rootLookup (domain) {
-    // Trace back the domain via root server using dig.
-    const stdout = await system('dig', ['+trace', domain]);
-    // Convert the stdout to lines.
-    const lines = stdout.split('\r\n');
-    // Parse out the list of resolved IPs.
-    const ipv4List = [];
-    const ipv6List = [];
-    const ipv4Pattern = /\b(\d{1,3}\.){3}\d{1,3}\b/;
-    const ipv6Pattern = /\b(?:[a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\b/;
-    // Filter all lines which hold records.
-    const records = lines.filter(line => !line.includes(';;'));
-    // Parse out the IPs of all matches
-    for (let record of records) {
-        if (ipv4Pattern.test(record)) 
-            ipv4List.push( record.match(ipv4Pattern)[0] )
-        else if (ipv6Pattern.test(record))
-            ipv6List.push( record.match(ipv6Pattern)[0] );
-    }
-    // Return a list of IPs
-    return {
-        ipv4: ipv4List,
-        ipv6: ipv6List
-    }
-}
-
-
 /**
  * Recursive DNS service.
  */
 export class RDNS {
-  constructor () {
+
+  constructor (logPath) {
+
+    // Regex patterns.
+    this.urlPattern = /^[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]*$/;
+    this.ipv4Pattern = /\b(\d{1,3}\.){3}\d{1,3}\b/;
+    this.ipv6Pattern = /\b(?:[a-fA-F0-9]{1,4}:){1,7}[a-fA-F0-9]{1,4}\b/;
+
+    this.logPath = logPath;
+    this.logFile = path.join(this.logPath, 'rdns.log');
+
+    // Initialize sqlite3 database.
     this.initDatabase();
+
   }
+
   /**
     * Initialize database and table.
+    * If no database exists it will be created from scratch including all tables.
     */
   async initDatabase () {
+    
+    // Resolve the database path
     this.databasePath = path.resolve(__dirname, 'domains.db');
+    
     console.log('db path', this.databasePath);
     let initTables = false;
     if (!fs.existsSync(this.databasePath))
         initTables = true
+
     // Open database in read write mode.
-    
     this.db = new sqlite3Verbose.Database(this.databasePath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
 
     // Initialize tables.
@@ -146,10 +133,14 @@ export class RDNS {
     * - SQL database lookup (for quick retrieval)
     * - If the db lookup fails this will try to resolve via root and tld servers
     * - Once resolved the data will be fed back into the database.
+    * If the domain cannot be resolved an error will be thrown.
     * @param {string} domain - domain name to resolve.
     * @returns {string} IP address as string.
     */
   async lookup (domain) {
+
+    if (!domain)
+        throw Error('[ERROR] No domain defined!')
 
     // Request entries from database
     const dbResults = await this.get(`SELECT id, domain, ipv4_list, ipv6_list, count 
@@ -216,17 +207,61 @@ export class RDNS {
             VALUES ('${domain}', '${ipv4ListStringified}', '${ipv6ListStringified}', 1);`
         )
     }
-    
+
+    return ipList[0]
 
   }
 
+  
+
   /**
-    * Alias for RDNS.lookup.
+    * Equivalent to RDNS.lookup but with secure production-ready validation, logging etc.
     * @param {string} domain - domain name to resolve.
-    * @returns {string} IP address as string.
+    * @returns {Promise<string>} IP address as string, or null if cannot be resolved.
     */
   async resolve (domain) {
-    return await this.lookup(domain)
+  
+    // Try to resolve the domain via RDNS
+    try {
+        // Resolve the domain securely
+        const ip = await this.lookup(domain);
+        log(this.logFile, `Resolved query "${domain}"`);
+        return ip
+    } catch (err) {
+        console.error(err);
+        log(this.logFile, `Failed to resolve "${domain}"`);
+        return null
+    }
+  
+  }
+
+  /**
+    * Performs a recursive DNS lookup via root servers and returns a list of resolved IPs.
+    * @param {string} domain - domain name e.g. google.com, not google.com/
+    * @returns {Promise<object>} Object with two lists for IPv4 and IPv6 addresses.
+    */
+  async rootLookup (domain) {
+      // Trace back the domain via root server using dig.
+      const stdout = await system('dig', ['+trace', domain]);
+      // Convert the stdout to lines.
+      const lines = stdout.split('\r\n');
+      // Parse out the list of resolved IPs.
+      const ipv4List = [];
+      const ipv6List = [];
+      // Filter all lines which hold records.
+      const records = lines.filter(line => !line.includes(';;'));
+      // Parse out the IPs of all matches
+      for (let record of records) {
+          if (this.ipv4Pattern.test(record)) 
+              ipv4List.push( record.match(this.ipv4Pattern)[0] )
+          else if (this.ipv6Pattern.test(record))
+              ipv6List.push( record.match(this.ipv6Pattern)[0] );
+      }
+      // Return a list of IPs
+      return {
+          ipv4: ipv4List,
+          ipv6: ipv6List
+      }
   }
 
   /**
@@ -241,7 +276,7 @@ export class RDNS {
   }
 }
 
-(async () => {
-    const r = new RDNS();
-    r.resolve('example.com')
-})()
+// (async () => {
+//     const r = new RDNS();
+//     r.resolve('example.com')
+// })()
