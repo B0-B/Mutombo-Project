@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { spawn } from 'child_process';
 import sqlite3 from 'sqlite3';
-import { log } from '../utils.js'
+import { log, sleep } from '../utils.js'
 
 
 const { verbose } = sqlite3;
@@ -17,7 +17,7 @@ const sqlite3Verbose = verbose();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 
 /**
  * Performs a system call and returns the stdout.
@@ -217,7 +217,7 @@ export class RDNS {
   /**
     * Equivalent to RDNS.lookup but with secure production-ready validation, logging etc.
     * @param {string} domain - domain name to resolve.
-    * @returns {Promise<string>} IP address as string, or null if cannot be resolved.
+    * @returns {Promise<string>} IP address as string, or null address i.e. '0.0.0.0' if cannot be resolved.
     */
   async resolve (domain) {
   
@@ -230,7 +230,7 @@ export class RDNS {
     } catch (err) {
         console.error(err);
         log(this.logFile, `Failed to resolve "${domain}"`);
-        return null
+        return '0.0.0.0'
     }
   
   }

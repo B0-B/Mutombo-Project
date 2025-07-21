@@ -6,28 +6,44 @@ const multer = require('multer');
 const http = require('http');
 const express = require('express'); 
 
-const { loadJSON, saveJSON, saveConfig, _hash } = require('./utils');
+const { loadJSON, 
+        saveJSON, 
+        saveConfig, 
+        _hash, 
+        log, 
+        configUpdater } = require('./utils');
 const { RDNS } = require('./rdns/main');
 
-(async () => {
-    
-    const app       =   express();
+// Paths
+const staticPath    = path.join(__dirname, 'public/static');
+const logPath       = path.join(__dirname, 'logs');
 
-    // Load RDNS Service
-    var rdns        = new RDNS();
+(async () => {
     
     // Global authentication variable
     var config      = await loadJSON('config.json'); // load the config file
     var upload      = multer({ dest: 'data/img/' });
+    const urlPattern = /^[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]*$/;
 
     // Globals
     var authenticated = false;
 
-    // Serve static files from the "public" directory
-    app.use(express.static(path.join(__dirname, 'public/static')));
+    // ---- Load Modules ----
+    // Load RDNS Service
+    var rdns        = new RDNS( logPath );
 
-    // ---- API endpoints ----
-    // init endpoint
+    // ---- Additional Loops ----
+    // Run a dynamic config updater
+    // Safe background loop to reload config
+    const configReloadTimeMs = 1000;
+    configUpdater(config, configReloadTimeMs);
+
+
+    // ---- Web Server & API endpoints ----
+    const app       =   express();
+
+    // Serve static files from the "public" directory
+    app.use(express.static(staticPath));
 
     // Authentication endpoint
     app.use(express.json()); // auto json parsing etc.
@@ -131,11 +147,17 @@ const { RDNS } = require('./rdns/main');
         else if (mode == 'set') {
             if (!req.body.data)
                 return res.json({msg: `/conf-endpoint: "set"-mode requires "data" parameter which was not specified.`, data: {}});
-            let current = conf;
+            let current = config;
             const keyChain      = req.body.key.split(delimiter);
-            for (let currentKey of keyChain.slice(0, -1))
+            // Work down the key chain
+            for (let currentKey of keyChain.slice(0, -1)) {
+                // Sanity check to ensure the current key always points to an object
+                if (!(currentKey in current) || typeof current[currentKey] !== 'object')
+                    return res.json({msg: `/conf-endpoint: Cannot resolve the keychain at key/level "${currentKey}"`, data: {}});
                 current = current[currentKey];
+            }
             current[keyChain[keyChain.length-1]] = req.body.data;
+            saveConfig(config);
         }
         
     });
@@ -173,15 +195,19 @@ const { RDNS } = require('./rdns/main');
     });
 
     // RDNS endpoint.
+    /* Stick to JSON. It's not noticeably slower, and user-friendly. */
     app.get('/resolve', async (req, res) => {
         const domain = req.query.domain;
-        if (!domain) return res.status(400).send('[ERROR] Domain is required but was not specified.');
-        try {
-            const result = await new RDNS().lookup(domain);
-            res.json(result);
-        } catch (err) {
-            res.status(500).send(err.message);
-        }
+        // Validate input format (protect against XSS)
+        if (!(domain && urlPattern.test(domain))) 
+            res.status(400).send(`[ERROR] No valid URL format submitted!`);
+        // Before resolving check for forbidden domains via blocker
+        // Try to resolve the domain via RDNS
+        const ip = await rdns.resolve(domain);
+        if (ip === null)
+            res.status(500).send(`[ERROR] No valid URL format submitted!"`);
+        
+
     });
 
 

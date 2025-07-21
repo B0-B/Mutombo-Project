@@ -18,11 +18,13 @@ Works like a DNS but returns a domain name for a provided IP, i. e. reverses the
 - Lightweight codebase suitable for most single board systems.
 - App should have a persistent desktop-like feeling.
 - Use vanilla Node.js 
-  - Node.js is compact
-  - reduce codebase by excluding large frameworks like vite, react, angular etc.
-  - Project becomes portable, OS independent and easy to update and maintain  
+  - Node.js is compact and portable where the projects become portable, OS independent and easy to update and maintain  
+  - Reduce codebase by excluding large frameworks like vite, react, angular etc.
+  - P
+  - Lean logging can shave milliseconds off request handling, especially when your service gets busy. A simple .log file gives you speed, clarity, and no external dependencies.
 - Adguard as base adblocker.
 - Easy usage via config.json (yaml requires a larger codebase + JSON is natively supported by node.js)
+
 
 ## v1.0.0 Features
 
