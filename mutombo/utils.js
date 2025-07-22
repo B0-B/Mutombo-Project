@@ -1,5 +1,6 @@
 const fs = require('fs/promises');
 const crypto = require('crypto');
+const path = require('path');
 const { time } = require('console');
 
 /**
@@ -28,13 +29,24 @@ async function saveJSON(path, data) {
   await fs.writeFile(path, json, 'utf8');
 }
 
+// ============ Config File Functions =============
+const configPath = path.join(__dirname, 'config.json')
 /**
- * Saves the config to dedicated file path
+ * Saves the config to dedicated file path.
+ * This function can be called in all modules and files.
  * @param {Object} config - config JSON-object to save
  * @returns {Promise<void>}
  */
 async function saveConfig(config) {
-    await saveJSON('config.json', config)
+    await saveJSON(configPath, config)
+}
+
+/**
+ * Loads the config file as json. This function can be called in all modules and files.
+ * @returns {Promise<object>} - config file as json object.
+ */
+async function loadConfig() {
+    return await loadJSON(configPath)
 }
 
 
@@ -128,6 +140,7 @@ module.exports = {
     loadJSON, 
     saveJSON, 
     saveConfig,
+    loadConfig,
     configUpdater,
     _hash,
     timestamp,
