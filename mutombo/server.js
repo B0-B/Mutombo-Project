@@ -1,18 +1,19 @@
 /** Mutombo - Main Server Code **/
 
-const fs = require('fs/promises'); // Use promise-based API
-const path = require('path');
-const multer = require('multer');
-const http = require('http');
-const express = require('express'); 
+const fs        = require('fs/promises'); // Use promise-based API
+const path      = require('path');
+const multer    = require('multer');
+const http      = require('http');
+const express   = require('express'); 
 
 const { loadJSON, 
         saveJSON, 
         saveConfig, 
         _hash, 
         log, 
-        configUpdater } = require('./utils');
-const { RDNS } = require('./rdns/main');
+        configUpdater } = require('#utils');
+const { RDNS }      = require('#rdns');
+const { Blocker }   = require('#block');
 
 // Paths
 const staticPath    = path.join(__dirname, 'public/static');
@@ -31,6 +32,9 @@ const logPath       = path.join(__dirname, 'logs');
     // ---- Load Modules ----
     // Load RDNS Service
     var rdns        = new RDNS( logPath );
+    // Load Blocker Service
+    var blocker     = new Blocker( config );
+    await blocker.cacheFromConfig() // Initialize all blocklists from config
 
     // ---- Additional Loops ----
     // Run a dynamic config updater
@@ -194,20 +198,23 @@ const logPath       = path.join(__dirname, 'logs');
         res.json({ msg: 'Image uploaded successfully', status: true });
     });
 
-    // RDNS endpoint.
+    // Main RDNS & Blocking endpoint.
     /* Stick to JSON. It's not noticeably slower, and user-friendly. */
     app.get('/resolve', async (req, res) => {
         const domain = req.query.domain;
         // Validate input format (protect against XSS)
         if (!(domain && urlPattern.test(domain))) 
-            res.status(400).send(`[ERROR] No valid URL format submitted!`);
-        // Before resolving check for forbidden domains via blocker
-        // Try to resolve the domain via RDNS
+            return res.status(400).send(`[ERROR] No valid URL format submitted!`);
+        // Before resolving, check for forbidden domains via blocker
+        // what would the server expect as answer? 0.0.0.0? or just send "blocked"
+        if (blocker.blocked(domain))
+            return res.status(403).send({ error: "Domain is blocked." });
+        // Try to resolve the domain via RDNS,
+        // in case the IP cannot be resolved the resolve method returns a null IP i.e. 0.0.0.0
         const ip = await rdns.resolve(domain);
-        if (ip === null)
-            res.status(500).send(`[ERROR] No valid URL format submitted!"`);
         
-
+        // Send the IP which at this point should be defined.
+        return res.send(ip);
     });
 
 

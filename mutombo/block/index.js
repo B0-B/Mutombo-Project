@@ -1,4 +1,4 @@
-import { loadJSON, log, saveConfig, loadConfig, timestamp } from '../utils.js'
+import { loadJSON, log, saveConfig, loadConfig, timestamp, sleep } from '#utils';
 
 export class Blocker {
     /**
@@ -12,6 +12,7 @@ export class Blocker {
      * 
      * Every blocklistObject is sourced from scratch everytime the server restarts.
      * @param {Array<object>} blocklists - Array of blocklist URLs to fetch.
+     * @returns {Promise<void>}
      */
     constructor (config) {
         this.config                 = config;
@@ -22,10 +23,18 @@ export class Blocker {
             'blocklistSets': {}
         }
 
+        
+    }
+
+    /**
+     * Loads all blocklists and caches their domains.
+     * This function needs to be called and awaited after every initialization of a Blocker instance.
+     * @returns {Promise<void>} 
+     */
+    async cacheFromConfig () {
         // Cache all blocklist objects from config
-        for (let blocklistObj of this.config.blocking.blocklists) {
-            this.cacheBlocklist(blocklistObj)
-        }
+        for (let blocklistObj of this.config.blocking.blocklists)
+            await this.cacheBlocklist(blocklistObj)
     }
 
     /**
@@ -78,14 +87,14 @@ export class Blocker {
 
 
     /**
-     * Checks if a domain exists in any blocklist and thus if it is blocked.
+     * Fast method which checks if a domain exists in any blocklist and thus if it is blocked.
      * @param {object} blocklistObject A blocklist object from config.blocking.blocklists
-     * @returns {boolean} Truth status on whether a domain is blocked.
+     * @returns {boolean} truth status on whether the provided domain is blocked.
      */
     blocked (domain) {
         for (let listName in this.cache.blocklistSets) {
             let set = this.cache.blocklistSets[listName];
-            if (set.has(domain)) 
+            if (set.has(domain)) // sets have fast table lookups
                 return true
         }
         return false
@@ -188,12 +197,13 @@ export class Blocker {
     }
 }
 
-(async () => {
-    let config = await loadJSON('../config.json');
-    const b = new Blocker(config);
-    await b.addNewBlockList('https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt')
-    console.log('set', b.cache.blocklistSets['adguard dns filter'])
-    console.log('albss.com blocked:', b.blocked('albss.com'))
-    console.log('youtube.com blocked:', b.blocked('youtube.com'))
-    // await b.removeBlockList('adguard dns filter')
-})()
+// (async () => {
+//     let config = await loadJSON('../config.json');
+//     const b = new Blocker(config);
+//     await b.cacheFromConfig();
+//     // await b.addNewBlockList('https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt')
+//     console.log('set', b.cache.blocklistSets['adguard dns filter'])
+//     console.log('albss.com blocked:', b.blocked('albss.com'))
+//     console.log('youtube.com blocked:', b.blocked('youtube.com'))
+//     // await b.removeBlockList('adguard dns filter')
+// })()

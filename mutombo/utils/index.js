@@ -1,19 +1,24 @@
-const fs = require('fs/promises');
-const crypto = require('crypto');
-const path = require('path');
-const { time } = require('console');
+// utils.js (ES Module version)
+import fs from 'fs/promises';
+import crypto from 'crypto';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 /**
  * Simple sleep function which accepts ms arguments.
  */
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * Loads a JSON file and parses its content
  * @param {string} path - Path to the JSON file
  * @returns {Promise<Object>} - Parsed JSON object
  */
-async function loadJSON(path) {
+export async function loadJSON(path) {
   return JSON.parse(await fs.readFile(path, 'utf8'));
 }
 
@@ -23,21 +28,21 @@ async function loadJSON(path) {
  * @param {Object} data - JSON object to save
  * @returns {Promise<void>}
  */
-async function saveJSON(path, data) {
+export async function saveJSON(path, data) {
   console.log('Saving to', path, 'with data:', data);
   const json = JSON.stringify(data, null, 2); // pretty-print with indentation
   await fs.writeFile(path, json, 'utf8');
 }
 
 // ============ Config File Functions =============
-const configPath = path.join(__dirname, 'config.json')
+export const configPath = path.join(__dirname, '../config.json')
 /**
  * Saves the config to dedicated file path.
  * This function can be called in all modules and files.
  * @param {Object} config - config JSON-object to save
  * @returns {Promise<void>}
  */
-async function saveConfig(config) {
+export async function saveConfig(config) {
     await saveJSON(configPath, config)
 }
 
@@ -45,7 +50,7 @@ async function saveConfig(config) {
  * Loads the config file as json. This function can be called in all modules and files.
  * @returns {Promise<object>} - config file as json object.
  */
-async function loadConfig() {
+export async function loadConfig() {
     return await loadJSON(configPath)
 }
 
@@ -55,7 +60,7 @@ async function loadConfig() {
  * @param {Object} configVariable - config JSON-object which should be updated.
  * @param {Object} updateTimeMs - time interval in which to update the config.
  */
-async function configUpdater (configVariable, updateTimeMs) {
+export async function configUpdater (configVariable, updateTimeMs) {
   while (true) {
     try {
       const newConfig = await loadJSON('config.json'); // use same logic as initial load
@@ -75,7 +80,7 @@ async function configUpdater (configVariable, updateTimeMs) {
  * Hashes a payload with SHA-256 algorithm and returns the hex output.
  * @returns {String}
  */
-function _hash (payload) {
+export function _hash (payload) {
     return crypto.createHash('sha256').update(payload).digest('hex')    
 }
 
@@ -86,7 +91,7 @@ function _hash (payload) {
  * Uses clever zero-padding without calling pad(), padStart() and some slicing. 
  * @returns {String} Timestamp in 'mm-dd-yy HH:MM' format.
  */
-function timestamp () {
+export function timestamp () {
   const d = new Date();
   return (
     ((d.getMonth() + 101).toString().slice(1)) + '/' +
@@ -101,7 +106,7 @@ function timestamp () {
  * A custom timestamp parser which is suitable for timestamp() function.
  * @returns {String} Timestamp in unix time in seconds.
  */
-function parseTimestamp(str) {
+export function parseTimestamp(str) {
   const [datePart, timePart] = str.split(' ');
   const [month, day, year] = datePart.split('/').map(n => parseInt(n, 10));
   const [hours, minutes] = timePart.split(':').map(n => parseInt(n, 10));
@@ -115,7 +120,7 @@ function parseTimestamp(str) {
  * @param {string} logPath -
  * @param {string} payload - The payload string to append to the file.
  */
-function log (logPath, payload) {
+export function log (logPath, payload) {
   fs.appendFile(logPath, timestamp() + '\t' + payload + '\n', err => {if (err) console.error("Log failed:", err);})
 }
 
@@ -130,19 +135,6 @@ function timeFromLog (log) {
  * @param {string} log - Single log entry as string.
  * @returns {String} Unix timestamp in seconds from single log entry. 
  */
-function unixTimeFromLog (log) {
+export function unixTimeFromLog (log) {
   return parseTimestamp(timeFromLog(log));
 }
-
-// Export all methods.
-module.exports = {
-    sleep,
-    loadJSON, 
-    saveJSON, 
-    saveConfig,
-    loadConfig,
-    configUpdater,
-    _hash,
-    timestamp,
-    log
-};

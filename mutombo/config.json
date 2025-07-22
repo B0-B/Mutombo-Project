@@ -9,8 +9,8 @@
           "id": "moving-container-navigation",
           "blur": 2,
           "position": [
-            218,
-            198
+            488,
+            23
           ],
           "size": [
             500,
@@ -25,7 +25,7 @@
       {
         "name": "adguard dns filter",
         "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
-        "date": "07/22/25 11:17",
+        "date": "07/22/25 12:58",
         "active": true
       }
     ]

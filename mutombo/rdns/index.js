@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { spawn } from 'child_process';
 import sqlite3 from 'sqlite3';
-import { log, sleep } from '../utils.js'
+import { log, sleep } from '#utils';
 
 
 const { verbose } = sqlite3;
