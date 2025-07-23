@@ -1,5 +1,6 @@
 /* API functions */
 
+import { movingContainer } from './container.js';
 import { state } from './state.js';
 
 /**
@@ -28,7 +29,7 @@ export async function download (filename) {
  * @param {string} mode - Request mode "get" or "set".
  * @param {string} key - The key to request. Multiple keys can be chained as key1.key2.key3...
  * @param {any} data - The data value to set at the key path (for set mode only).
- * @returns {any} - Returns the corr. config value.
+ * @returns {Promise<any>} - Returns the corr. config value.
  */
 export async function config (mode, key, data={}) {
     const res = await fetch('/conf', {
@@ -88,7 +89,7 @@ export async function loadState () {
 
 /**
  * Saves the state of the provided container in global state object.
- * @param {HTMLElement} container - The container which to save.
+ * @param {movingContainer} container - The container which to save.
  */
 export function saveContainerState (container) {
     state.dashboard.containers[container.info.name] = container.info;

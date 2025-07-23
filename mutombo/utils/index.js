@@ -56,7 +56,7 @@ export async function loadConfig() {
 
 
 /**
- * Updates the provided config reference or variable object with the sourced.
+ * Updates the provided config reference or variable object with the newly sourced one.
  * @param {Object} configVariable - config JSON-object which should be updated.
  * @param {Object} updateTimeMs - time interval in which to update the config.
  */
@@ -67,8 +67,16 @@ export async function configUpdater (configVariable, updateTimeMs) {
       // Optional: do a sanity check or deep merge
       // Object.keys(configVariable).forEach(k => delete configVariable[k]);
       Object.assign(configVariable, newConfig);
-    } catch (err) {
-      console.error('Failed to reload config:', err);
+    } catch (error) {
+      // Fuse method, as the config can get out of place, 
+      // once the reading fails with a syntax error, 
+      // we just override it with the most recent state
+      if (error instanceof SyntaxError) {
+        await saveConfig(configVariable);
+        console.log('[configUpdater] Rectify config ...')
+      } else {
+        console.error('Failed to reload config:', error);
+      }
     } finally {
       await sleep(updateTimeMs)
     }
@@ -83,6 +91,34 @@ export async function configUpdater (configVariable, updateTimeMs) {
 export function _hash (payload) {
     return crypto.createHash('sha256').update(payload).digest('hex')    
 }
+
+
+/**
+ * A fast strip down function which turns URLs securely into domain format.
+ * Example: stripURLtoDomain('https://www.youtube.com/watch?v=') -> 'youtube.com'.
+ * URLs can be just a domain or contain more info. Usually the domain is a subset of the domain.
+ * In this case this function returns always just the domain part, no matter the input.
+ * @param {string} URL - URL to strip
+ * @returns {string} - Domain part as string
+ */
+export function stripURLtoDomain (URL) {
+  // Remove potential edge whitespace.
+  var domain = URL.trim();
+  // Remove protocol tag
+  if (URL.includes('http://')) {
+    domain = URL.replace('http://', '')
+  } else if (URL.includes('https://')) {
+    domain = URL.replace('https://', '')
+  }
+  // Remove the "www." part, if present
+  domain = domain.replace('www.', '');
+  // Cut off anything after the first slash if paths are present
+  if (domain.includes('/')) {
+    domain = domain.split('/')[0]
+  }
+  return domain
+}
+
 
 // ============ Logging Mechanics =============
 

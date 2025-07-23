@@ -1,6 +1,6 @@
 import { state } from './state.js';
-import { download, saveContainerState, loadBackground, loadState, getSearchEndpoint } from './api.js';
-import { create, movingContainer, focusContainer, autoPlaceContainer } from './container.js';
+import { download, saveContainerState, loadBackground, loadState, getSearchEndpoint, config } from './api.js';
+import { create, movingContainer, focusContainer, autoPlaceContainer, createTableFromJSON } from './container.js';
 
 
 /**
@@ -86,6 +86,19 @@ async function loadNavigation () {
     });
 }
 
+async function loadBlocklistContainer (params) {
+    
+    let container = new movingContainer('blocklist', [ 500, 500 ]);
+    autoPlaceContainer('blocklist');
+    let containerElement = document.getElementById(container.info.id);
+
+    // const blockListTable = create('table', 'blocklist-table', container.info.id)
+    
+    // Request blocklists from server
+    const blocklists = await config('get', 'blocking.blocklists');
+    console.log('blocklists', blocklists)
+}
+
 export async function dashPage (params) {
     
     const app = document.getElementById('app');
@@ -100,4 +113,5 @@ export async function dashPage (params) {
     await loadState();
     loadBackground(page);
     loadNavigation();
+    loadBlocklistContainer();
 }

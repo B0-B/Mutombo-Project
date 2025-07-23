@@ -52,9 +52,12 @@ export function focusContainer (container) {
  * @param {Array[int]} size - Container size in pixels e.g. [200, 400].
  * @param {string} content - The inner html content to display.
  */
+var activeContainer = null;
 export class movingContainer {
 
     constructor (name, size=[200, 200], content="") {
+
+        this.expectedName = name;
 
         this.info = {};
         this.info.name = name;
@@ -70,8 +73,10 @@ export class movingContainer {
             throw new Error(`Element "${name}" exists already!`);
         state.elements[name] = this.element;
         // Check if the container info was forwarded to state
-        if (!name in state.dashboard.containers)
+        if (!(name in state.dashboard.containers)) {
             state.dashboard.containers[name] = this.info;
+        }
+            
         // Otherwise use the persistent state coordinates 
         else {
             console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
@@ -92,6 +97,9 @@ export class movingContainer {
 
         // Add content
         this.element.innerHTML = content;
+
+        // Save container 
+        // saveContainerState(this);
         
         // Drag and drop mechanics.
         this.clickOffset = [0, 0]; // relative mouse position internal element.
@@ -100,26 +108,102 @@ export class movingContainer {
         // Arrow functions preserve `this` object.
         // Define the event listeners correspondingly.
         this.element.addEventListener('mousedown', (e) => {
-            // Raise the element to front
-            focusContainer(this);
+            activeContainer = this;
             // Activate dragging on left click action.
             if (e.button === 0) this.draggingActive = true;
             // Set the offset
             this.clickOffset = [e.offsetX, e.offsetY];
-            
+            // Raise the element to front
+            focusContainer(this);
         });
         document.addEventListener('mouseup', (e) => {
-            this.draggingActive = false;
-            // Once the mouse is released save the position and save the state
-            this.info.position      = [e.pageX - this.clickOffset[0], e.pageY - this.clickOffset[1]];
-            saveContainerState(this);
+            if (activeContainer === this && this.draggingActive) {
+                this.draggingActive = false;
+                this.info.position = [e.pageX - this.clickOffset[0], e.pageY - this.clickOffset[1]];
+                saveContainerState(this);
+                activeContainer = null; // Clear after save
+            }
         });
         document.addEventListener('mousemove', (e) => {
-            if (!this.draggingActive) return;
-            this.element.style.left = `${e.pageX - this.clickOffset[0]}px`;
-            this.element.style.top  = `${e.pageY - this.clickOffset[1]}px`;
+            if (activeContainer === this && this.draggingActive) {
+                this.element.style.left = `${e.pageX - this.clickOffset[0]}px`;
+                this.element.style.top  = `${e.pageY - this.clickOffset[1]}px`;
+            }
         });
     }
 }
 
+/**
+ * Creates a table from JSON file using the format:
+ * var jsonData = [
+ *  {
+ *      "Book ID": "1",
+ *      "Book Name": "Computer Architecture",
+ *      "Category": "Computers",
+ *      "Price": "125.60"
+ *  }, ...
+ * ]
+ * and appends it to the provided parentId element.
+ * @param {Array[object]} jsonList - Array of identically structured json objects.
+ * @param {string} parentId - id of the parent element in which to place the table.
+ * @param {boolean} striped - if enabled will add alternating shades to table rows (for better readability)
+ * @param {string} tableLayout - the table layout, default: fixed.
+ * @param {string} verticalCellAlign - vertical alignment within the cell
+ * @returns {HTMLElement} - the final table.
+*/
+export function createTableFromJSON (jsonList, parentId, striped=false, tableLayout='fixed', verticalCellAlign='middle') {
+    
+    // EXTRACT VALUE FOR HTML HEADER. 
+    // ('Book ID', 'Book Name', 'Category' and 'Price')
+    var col = [];
+    for (var i = 0; i < jsonList.length; i++) {
+        for (var key in jsonList[i]) {
+            if (col.indexOf(key) === -1) {
+                col.push(key);
+            }
+        }
+    }
+    
+    // CREATE DYNAMIC TABLE.
+    var table = document.createElement("table");
+    table.style.tableLayout = tableLayout;
+    table.style.width = '100%'
 
+    // FORWARD A CLASS METHOD
+    if (striped) {
+        table.classList.add('table');
+        table.classList.add('table-striped');
+    }
+    
+
+    // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
+    var tr = table.insertRow(-1);                   // TABLE ROW.
+    for (var i = 0; i < col.length; i++) {
+        var th = document.createElement("th");      // TABLE HEADER.
+        th.innerHTML = col[i];
+        tr.appendChild(th);
+    }
+
+    // ADD JSON DATA TO THE TABLE AS ROWS.
+    for (var i = 0; i < jsonList.length; i++) {
+
+        tr = table.insertRow(-1);
+
+        for (var j = 0; j < col.length; j++) {
+            var tabCell = tr.insertCell(-1);
+
+            // set vertical alignment in the td cell
+            tabCell.style.verticalAlign = verticalCellAlign
+
+            // fill content
+            tabCell.innerHTML = jsonList[i][col[j]];
+        }
+    }
+
+    // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+    var divContainer = document.getElementById(parentId);
+    divContainer.innerHTML = "";
+    divContainer.appendChild(table);
+
+    return table
+}

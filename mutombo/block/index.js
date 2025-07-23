@@ -22,8 +22,17 @@ export class Blocker {
         this.cache = {
             'blocklistSets': {}
         }
-
-        
+        // Track statistics
+        this.stats = {
+            /*Standard request scheme 
+            {
+                timestamp: in ms,
+                domain: ...,
+                status: resolved | blocked
+            }
+            */
+            'requests': {}
+        }
     }
 
     /**

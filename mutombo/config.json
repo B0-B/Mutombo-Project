@@ -9,12 +9,25 @@
           "id": "moving-container-navigation",
           "blur": 2,
           "position": [
-            488,
-            23
+            463,
+            376
           ],
           "size": [
             500,
             60
+          ]
+        },
+        "blocklist": {
+          "name": "blocklist",
+          "id": "moving-container-blocklist",
+          "blur": 2,
+          "position": [
+            210,
+            132
+          ],
+          "size": [
+            500,
+            500
           ]
         }
       }

@@ -4,14 +4,15 @@ const fs        = require('fs/promises'); // Use promise-based API
 const path      = require('path');
 const multer    = require('multer');
 const http      = require('http');
-const express   = require('express'); 
-
+const express   = require('express');
 const { loadJSON, 
         saveJSON, 
         saveConfig, 
         _hash, 
         log, 
-        configUpdater } = require('#utils');
+        configUpdater, 
+        loadConfig,
+        stripURLtoDomain} = require('#utils');
 const { RDNS }      = require('#rdns');
 const { Blocker }   = require('#block');
 
@@ -21,13 +22,11 @@ const logPath       = path.join(__dirname, 'logs');
 
 (async () => {
     
-    // Global authentication variable
-    var config      = await loadJSON('config.json'); // load the config file
-    var upload      = multer({ dest: 'data/img/' });
-    const urlPattern = /^[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]*$/;
-
     // Globals
-    var authenticated = false;
+    var config          = await loadConfig(); // load the config file
+    var upload          = multer({ dest: 'data/img/' }); // image access
+    const urlPattern    = /^[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]*$/;
+    var authenticated   = false;
 
     // ---- Load Modules ----
     // Load RDNS Service
@@ -40,11 +39,12 @@ const logPath       = path.join(__dirname, 'logs');
     // Run a dynamic config updater
     // Safe background loop to reload config
     const configReloadTimeMs = 1000;
+    // const configSaveCopy = config;
     configUpdater(config, configReloadTimeMs);
 
 
     // ---- Web Server & API endpoints ----
-    const app       =   express();
+    const app = express();
 
     // Serve static files from the "public" directory
     app.use(express.static(staticPath));
@@ -107,21 +107,21 @@ const logPath       = path.join(__dirname, 'logs');
         // Serve the most recent state.
         if (req.body.mode == 'get') {
             // Source the config
-            config = await loadJSON('config.json');
+            config = await loadConfig();
             // Respond with state data
             return res.json({data: config.state})
         }
         // Complete override option
         else if (req.body.mode == 'override') {
             config.state = req.body.data;
-            saveConfig(); // Save the config persistently.
+            await saveConfig(); // Save the config persistently.
             return res.json({status: true})
         }
         // Container override option
         else if (req.body.mode == 'container') {
             const container_info = req.body.data;
-            config.state.dashboard.containers[container_info.name] = req.body.data;
-            saveConfig(config); // Save the config persistently.
+            config.state.dashboard.containers[container_info.name] = container_info;
+            await saveConfig(config); // Save the config persistently.
             return res.json({status: true})
         }
     });
@@ -201,20 +201,29 @@ const logPath       = path.join(__dirname, 'logs');
     // Main RDNS & Blocking endpoint.
     /* Stick to JSON. It's not noticeably slower, and user-friendly. */
     app.get('/resolve', async (req, res) => {
-        const domain = req.query.domain;
+
+        const url = req.query.url;
+
         // Validate input format (protect against XSS)
-        if (!(domain && urlPattern.test(domain))) 
+        if (!(url && urlPattern.test(url))) 
             return res.status(400).send(`[ERROR] No valid URL format submitted!`);
-        // Before resolving, check for forbidden domains via blocker
-        // what would the server expect as answer? 0.0.0.0? or just send "blocked"
+
+        // Strip down the url to extract domain
+        const domain = stripURLtoDomain(url);
+
+        // Before resolving, check for forbidden domains via blocker.
+        // What would the server expect as answer? 0.0.0.0? or just send "blocked"
         if (blocker.blocked(domain))
             return res.status(403).send({ error: "Domain is blocked." });
+
         // Try to resolve the domain via RDNS,
-        // in case the IP cannot be resolved the resolve method returns a null IP i.e. 0.0.0.0
+        // in case the IP cannot be resolved the resolve method 
+        // returns a null IP i.e. 0.0.0.0
         const ip = await rdns.resolve(domain);
         
         // Send the IP which at this point should be defined.
         return res.send(ip);
+
     });
 
 
