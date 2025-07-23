@@ -184,7 +184,7 @@ export class RDNS {
     } 
 
     // Perform recursive lookup via root servers.
-    const rootQuery = await rootLookup(domain);
+    const rootQuery = await this.rootLookup(domain);
     const ipList = [...rootQuery['ipv4'], ...rootQuery['ipv6']];
     console.log('root ip list', ipList);
     if (ipList.length === 0)

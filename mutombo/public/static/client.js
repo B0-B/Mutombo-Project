@@ -8,6 +8,13 @@ var app = document.getElementById('app');
 
 async function __main__ () {
 
+    // DNS Resolve test
+    // let url = 'youtube.local';
+    // const response = await fetch('/resolve?url='+url);
+    // const data = await response.text();
+    // console.log('TEST RDNS:', data);
+
+    // Set title of document.
     document.title = "Mutombo";
 
     // authenticate - block until authentication

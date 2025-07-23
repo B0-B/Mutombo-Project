@@ -105,24 +105,67 @@ const logPath       = path.join(__dirname, 'logs');
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         
         // Serve the most recent state.
-        if (req.body.mode == 'get') {
+        if (req.body.mode === 'get') {
             // Source the config
             config = await loadConfig();
             // Respond with state data
             return res.json({data: config.state})
         }
         // Complete override option
-        else if (req.body.mode == 'override') {
+        else if (req.body.mode === 'override') {
             config.state = req.body.data;
             await saveConfig(); // Save the config persistently.
             return res.json({status: true})
         }
         // Container override option
-        else if (req.body.mode == 'container') {
+        else if (req.body.mode === 'container') {
             const container_info = req.body.data;
             config.state.dashboard.containers[container_info.name] = container_info;
             await saveConfig(config); // Save the config persistently.
             return res.json({status: true})
+        }
+        // Blocklist activity setting
+        else if (req.body.mode === 'blocklist') {
+            
+            // Short sanity check
+            if (!req.body.name) {
+                return res.status(403).send(`[ERROR] No 'name' parameter provided to specify the container!`)
+            }
+
+            const blockListName = req.body.name;
+
+            // Check if activity is defined as a boolean
+            if (typeof req.body.activity === 'boolean') {
+
+                // Source the blocklist in config array and set activity
+                for (let blocklist of config.blocking.blocklists) {
+                    if (blocklist.name === blockListName) {
+                        blocklist.active = req.body.activity;
+                        break
+                    }
+                }
+
+                // Save config & forward the config via shortcut to blocker service
+                saveConfig(config);
+                blocker.config = config;
+                
+                return res.json({msg: `Successfully switched "${blockListName}" activity.`})
+            }
+
+            // Remove blocklist with provided name
+            else if (typeof req.body.remove === 'boolean') {
+
+                // Remove the blocklist from config array
+                const index = config.blocking.blocklists.findIndex(obj => obj.name === req.body.name);
+                if (index !== -1) config.blocking.blocklists.splice(index, 1); // removes the object with id === 42
+
+                // Save config & forward the config via shortcut to blocker service
+                saveConfig(config);
+                blocker.config = config;
+                
+                return res.json({msg: `Successfully removed "${blockListName}" from blocklists.`})
+
+            }
         }
     });
 

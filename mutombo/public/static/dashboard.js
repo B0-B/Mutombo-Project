@@ -1,6 +1,6 @@
 import { state } from './state.js';
-import { download, saveContainerState, loadBackground, loadState, getSearchEndpoint, config } from './api.js';
-import { create, movingContainer, focusContainer, autoPlaceContainer, createTableFromJSON } from './container.js';
+import { loadBackground, loadState, getSearchEndpoint, config } from './api.js';
+import { create, movingContainer, focusContainer, autoPlaceContainer, createTableFromJSON, filterTableByValues } from './container.js';
 
 
 /**
@@ -21,7 +21,7 @@ async function loadNavigation () {
 
     // ==== Navigation Search Bar ====
     // ---- HTML Structure ----
-    let searchContainer = create('div', 'nav-search-bar-container', navi.info.id);
+    let searchContainer = create('div', 'nav-search-bar-container', navi.header);
     let searchInput     = create('input', 'nav-search-bar-input', 'nav-search-bar-container');
     let searchButton    = create('button', 'nav-search-bar-button', 'nav-search-bar-container');
 
@@ -86,21 +86,145 @@ async function loadNavigation () {
     });
 }
 
-async function loadBlocklistContainer (params) {
-    
-    let container = new movingContainer('blocklist', [ 800, 500 ]);
-    autoPlaceContainer('blocklist');
-    let containerElement = document.getElementById(container.info.id);
+async function hashURL (url) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(url);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
-    // const blockListTable = create('table', 'blocklist-table', container.info.id)
-    
+/**
+ * Loads the content to previously constructed container.
+ * @param {movingContainer} container movingContainer instance
+ * @returns {Promise<void>}
+ */
+async function  loadBlocklistContainerContent (container) {
+
+    let containerBody = container.body;
+
     // Request blocklists from server
     const blocklists = await config('get', 'blocking.blocklists');
-    console.log('blocklists', blocklists)
+    console.log('blocklists', blocklists);
 
-    const blockListTable = createTableFromJSON(blocklists, container.info.id);
+    const blockListTable = createTableFromJSON(blocklists, containerBody.id);
     blockListTable.id = 'blocklist-table';
     blockListTable.style.color = 'white';
+
+    // Manipulate table to include a row of switches for enabling/disabling blocklists
+    filterTableByValues(['true', 'false'], async (matchedCell, matchedValue, row) => {
+
+        // Unpack rows
+        const rowEntries = row.querySelectorAll('td');
+        let blockListName = rowEntries[0].textContent.trim();
+        let url = rowEntries[1].textContent.trim();
+
+        // Safe url hash for id
+        let safeUrl = await hashURL(url);
+
+        // Build unique toggler
+        let toggleId = `toggler-${safeUrl}`;
+        console.log('hash', url, safeUrl)
+        matchedCell.innerHTML = ''; // remove value from cell first 
+        const switchWrapper = create('div', `switch-wrapper-${url}`, matchedCell);
+        switchWrapper.classList.add('form-check', 'form-switch');
+        const toggler       = create('input', toggleId, switchWrapper);
+        toggler.classList.add('form-check-input');
+        toggler.style.boxShadow = 'none';
+        toggler.type = 'checkbox';
+
+        // Style the toggler depending on start value
+        if (matchedValue === 'true') {
+            toggler.checked = true
+            toggler.style.backgroundColor = '#28a745'; // Bootstrap green
+            toggler.style.borderColor = '#28a745';
+        } else {
+            toggler.checked = false
+            toggler.style.backgroundColor = '#ccc';
+            toggler.style.borderColor = '#383838';
+        }
+
+        // Append eventlistener to toggle input
+        toggler.addEventListener('change', (event) => {
+
+            // Extract the activity input
+            const activity = event.target.checked;
+
+            // Set activity dependend style
+            if (activity) {
+                // Switched ON
+                toggler.style.backgroundColor = '#28a745'; // Bootstrap green
+                toggler.style.borderColor = '#28a745';
+                console.log('Enable blocklist: ' + blockListName)
+            } else {
+                // Switched OFF
+                toggler.style.backgroundColor = '#ccc';
+                toggler.style.borderColor = '#383838';
+                console.log('Disable blocklist: ' + blockListName);
+            }
+
+            // Send request to server
+            fetch('/state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: 'blocklist', activity: activity, name: blockListName })
+            });
+
+        });
+
+    }, 3);
+
+
+    // Add an delete/remove-button for each row
+    const rows = blockListTable.querySelectorAll('tbody tr');
+    var headerSkip = true;
+    for (let row of rows) {
+
+        // Skip the first header row.
+        if (headerSkip) {
+            headerSkip = false;
+            continue;
+        }
+        
+        // Retrieve corr. blocklist name
+        const rowEntries    = row.querySelectorAll('td');
+        let blockListName   = rowEntries[0].innerHTML;
+
+        // Create a remove cell
+        const removeCell = document.createElement('td');
+        removeCell.innerHTML = '✖️';
+        removeCell.style.cursor = 'pointer';
+        const parent = rowEntries[0].parent
+        row.appendChild(removeCell);
+
+        // Remove cell acts as a button
+        removeCell.addEventListener('click', () => {
+            row.remove();
+            fetch('/state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: 'blocklist', name: blockListName, remove: true })
+            }) 
+        });
+
+    }
+    
+}
+
+
+/**
+ * Loads the frame and initializes moving Container.
+ * @returns {Promise<void>}
+ */
+async function loadBlocklistContainer () {
+    
+    // Initialize the container frame
+    let container = new movingContainer('blocklist', [ 800, 500 ], "", 'Blocklists');
+    autoPlaceContainer('blocklist');
+    
+    // Load content
+    await loadBlocklistContainerContent(container);
 
 }
 

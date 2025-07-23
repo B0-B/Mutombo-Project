@@ -102,9 +102,17 @@ export class Blocker {
      */
     blocked (domain) {
         for (let listName in this.cache.blocklistSets) {
+
+            // Leap-frog non-active blocklists
+            if (!this.isActive(listName)) continue;
+
+            // Derive domain set of the current blocklist
             let set = this.cache.blocklistSets[listName];
+            
+            // Lookup query of domain in domain set of current blocklist
             if (set.has(domain)) // sets have fast table lookups
                 return true
+
         }
         return false
     }
@@ -202,6 +210,19 @@ export class Blocker {
             
             console.log(`Failed to remove blocklist "${name}":\n${error}`)
 
+        }
+    }
+
+    /**
+     * Checks if a registered blocklist with provided name is active or not.
+     * Will draw the result always from instance config.
+     * @param {string} blockListName Name of the blocklist to query.
+     * @returns {boolean} Activity status as boolean
+     */
+    isActive (blockListName) {
+        for (let blocklist of this.config.blocking.blocklists) {
+            if ( blocklist.name === blockListName )
+                return blocklist.active
         }
     }
 }

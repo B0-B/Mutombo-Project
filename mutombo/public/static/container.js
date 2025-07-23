@@ -19,13 +19,21 @@ export async function autoPlaceContainer (containerName) {
  * Allows to quickly create alements and assign identifiers
  * @param {string} tag - DOM tag type e.g. "div"
  * @param {string} id - DOM identifier e.g. "my-container"
- * @param {string} parent_id - DOM identifier of parent element
+ * @param {string|HTMLElement} parent_id - DOM identifier, or element of parent
  * @returns {HTMLElement} - Returns the just created DOM object.
  */
 export function create (tag, id, parent_id) {
     const   el = document.createElement(tag);
             el.id = id;
-    if (parent_id) document.getElementById(parent_id).appendChild(el);
+    
+    if (parent_id) {
+        if (parent_id instanceof HTMLElement) {
+            parent_id.appendChild(el);
+        } else if (typeof parent_id === 'string') {
+            const parentEl = document.getElementById(parent_id);
+            parentEl?.appendChild(el);
+        }
+    } 
     return el;
 }
 
@@ -55,7 +63,7 @@ export function focusContainer (container) {
 var activeContainer = null;
 export class movingContainer {
 
-    constructor (name, size=[200, 200], content="") {
+    constructor (name, size=[200, 200], content="", heading="") {
 
         this.expectedName = name;
 
@@ -96,7 +104,16 @@ export class movingContainer {
         this.element.classList.add('rounded', 'contour');
 
         // Add content
-        this.element.innerHTML = content;
+        // this.element.innerHTML = content;
+
+        // Define header and footer and style
+        this.header = create('div', `container-${this.info.name}-header`, this.element.id);
+        this.body = create('div', `container-${this.info.name}-body`, this.element.id);
+        this.header.classList.add('moving-container-header');
+        this.body.classList.add('moving-container-body');
+        this.header.innerHTML=`<h1>${heading}</h1>`;
+        this.header.style.color = 'white';
+        this.body.innerHTML = content;
         
         // Drag and drop mechanics.
         this.clickOffset = [0, 0]; // relative mouse position internal element.
@@ -105,7 +122,8 @@ export class movingContainer {
         // Arrow functions preserve `this` object.
         // Define the event listeners correspondingly.
         this.element.addEventListener('mousedown', (e) => {
-            if (e.target !== this.element) return;
+            // Ensure to only click on background or header
+            if (e.target !== this.element && e.target !== this.header) return;
             activeContainer = this;
             // Activate dragging on left click action.
             if (e.button === 0) this.draggingActive = true;
@@ -218,9 +236,43 @@ export function createTableFromJSON (jsonList,
     }
 
     // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
-    var divContainer = document.getElementById(parentId);
-    divContainer.innerHTML = "";
-    divContainer.appendChild(table);
+    if (parentId) {
+        var divContainer = document.getElementById(parentId);
+        divContainer.innerHTML = "";
+        divContainer.appendChild(table);
+    }
 
     return table
 }
+
+
+/**
+ * Iterates through table rows and calls callback on cells matching any target value.
+ * Skips header row. If no columnIndex is given, checks all columns.
+ *
+ * @param {string[]} targetValues - Array of strings to match.
+ * @param {Function} callback - Called with (matchedCell, matchedValue, row).
+ * @param {number} [columnIndex] - Optional index of the column to check. If omitted, checks all columns.
+ */
+export function filterTableByValues(targetValues, callback, columnIndex = null) {
+    const table = document.getElementById('blocklist-table');
+    const rows = table.querySelectorAll('tbody tr');
+
+    for (let i = 1; i < rows.length; i++) { // Skip header
+        const cells = rows[i].querySelectorAll('td');
+
+        const columnsToCheck = columnIndex !== null ? [columnIndex] : [...Array(cells.length).keys()];
+
+        for (const col of columnsToCheck) {
+            const cell = cells[col];
+            const value = cell.textContent.trim();
+
+            for (const target of targetValues) {
+                if (value === target) {
+                    callback(cell, target, rows[i]);
+                }
+            }
+        }
+    }
+}
+
