@@ -88,7 +88,7 @@ async function loadNavigation () {
 
 async function loadBlocklistContainer (params) {
     
-    let container = new movingContainer('blocklist', [ 500, 500 ]);
+    let container = new movingContainer('blocklist', [ 800, 500 ]);
     autoPlaceContainer('blocklist');
     let containerElement = document.getElementById(container.info.id);
 
@@ -97,6 +97,11 @@ async function loadBlocklistContainer (params) {
     // Request blocklists from server
     const blocklists = await config('get', 'blocking.blocklists');
     console.log('blocklists', blocklists)
+
+    const blockListTable = createTableFromJSON(blocklists, container.info.id);
+    blockListTable.id = 'blocklist-table';
+    blockListTable.style.color = 'white';
+
 }
 
 export async function dashPage (params) {

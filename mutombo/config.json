@@ -9,8 +9,8 @@
           "id": "moving-container-navigation",
           "blur": 2,
           "position": [
-            463,
-            376
+            380,
+            39
           ],
           "size": [
             500,
@@ -22,11 +22,11 @@
           "id": "moving-container-blocklist",
           "blur": 2,
           "position": [
-            210,
-            132
+            159,
+            197
           ],
           "size": [
-            500,
+            800,
             500
           ]
         }

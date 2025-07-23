@@ -97,9 +97,6 @@ export class movingContainer {
 
         // Add content
         this.element.innerHTML = content;
-
-        // Save container 
-        // saveContainerState(this);
         
         // Drag and drop mechanics.
         this.clickOffset = [0, 0]; // relative mouse position internal element.
@@ -108,6 +105,7 @@ export class movingContainer {
         // Arrow functions preserve `this` object.
         // Define the event listeners correspondingly.
         this.element.addEventListener('mousedown', (e) => {
+            if (e.target !== this.element) return;
             activeContainer = this;
             // Activate dragging on left click action.
             if (e.button === 0) this.draggingActive = true;
@@ -146,12 +144,20 @@ export class movingContainer {
  * and appends it to the provided parentId element.
  * @param {Array[object]} jsonList - Array of identically structured json objects.
  * @param {string} parentId - id of the parent element in which to place the table.
+ * @param {string} resolveLinks - will detect and resolve links for interaction in cell entries, 
+ * @param {string} cellOverflow - default: 'hidden', other could be line-break etc.
  * @param {boolean} striped - if enabled will add alternating shades to table rows (for better readability)
  * @param {string} tableLayout - the table layout, default: fixed.
  * @param {string} verticalCellAlign - vertical alignment within the cell
  * @returns {HTMLElement} - the final table.
-*/
-export function createTableFromJSON (jsonList, parentId, striped=false, tableLayout='fixed', verticalCellAlign='middle') {
+ */
+export function createTableFromJSON (jsonList, 
+                                     parentId,
+                                     resolveLinks=true, 
+                                     cellOverflow='hidden',
+                                     striped=false, 
+                                     tableLayout='fixed', 
+                                     verticalCellAlign='middle') {
     
     // EXTRACT VALUE FOR HTML HEADER. 
     // ('Book ID', 'Book Name', 'Category' and 'Price')
@@ -193,10 +199,21 @@ export function createTableFromJSON (jsonList, parentId, striped=false, tableLay
             var tabCell = tr.insertCell(-1);
 
             // set vertical alignment in the td cell
-            tabCell.style.verticalAlign = verticalCellAlign
+            tabCell.style.overflow = cellOverflow;
+            tabCell.style.verticalAlign = verticalCellAlign;
+            
+            // Format the content
+            // If content is an http-like link
+            var content;
+            const rawContent = `${jsonList[i][col[j]]}`;
+            if (resolveLinks && rawContent.includes('http')) {
+                content = `<a href="${rawContent}" target="_blank" rel="noopener noreferrer">${rawContent}</a>`
+            } else {
+                content = rawContent
+            }
 
             // fill content
-            tabCell.innerHTML = jsonList[i][col[j]];
+            tabCell.innerHTML = content;
         }
     }
 
