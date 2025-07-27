@@ -3,10 +3,14 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { timeStamp } from 'console';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * @typedef {number} Integer
+ */
 
 /**
  * Simple sleep function which accepts ms arguments.
@@ -173,4 +177,93 @@ function timeFromLog (log) {
  */
 export function unixTimeFromLog (log) {
   return parseTimestamp(timeFromLog(log));
+}
+
+// ============ Statistics =============
+
+/** Collects the domain in blocking scenario and creates all necessary entries in global stats object.
+ * @param {string} domain domain which was blocked
+ * @param {object} stats stats instance reference i.e. the global stats object
+ * @param {string} type either 'blocks' or 'request'
+ * @param {Request} req optional, allows to resolve more data into the stats object
+ * @returns {Promise<void>}
+ */
+export async function collectRequestInfoForStats (domain, stats, type, req) {
+
+  // Extract requestor and user agent information
+  var agent, client;
+  if (req) {
+    agent = req.headers['user-agent'];
+    client = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  } else {
+    agent = 'n/a',
+    client = 'n/a'
+  }
+
+  // Create a timeseries entry
+  const timeString = timestamp();
+  const timestamp = parseTimestamp(timeString);
+
+  // *** TIMESERIES ENTRY FORMAT ***
+  const entry = {
+    domain,   // Requested domain
+    client,   // The requestor IP
+    agent,    // Requestor user agent
+    time: timeString
+  }
+
+  // Aggregate the entry
+  stats.dns[type].timeseries[timestamp] = entry;
+
+  // Add the count by domain
+  if (domain in stats.dns[type].by_domain) {
+    stats.dns[type].by_domain[domain] = stats.dns[type].by_domain[domain] + 1;
+  } else {
+    stats.dns[type].by_domain[domain] = 1;
+  }
+  
+  // Increment the total requests count
+  stats.dns[type].total_events = stats.dns[type].total_events + 1;
+
+}
+
+/** 
+ * Analyzes continuously the stats object.
+ * @param {object} stats stats instance reference i.e. the global stats object
+ * @param {Integer} updateTimeMs update time in milliseconds
+ */
+export async function analyzeStats (stats, updateTimeMs) {
+  while (true) {
+    try {
+      // Analyze DNS stats
+      // Sort requests and blocks 
+      for (let type of ['resolutions', 'blocks']) {
+        stats.dns[type].by_domain = Object.entries(stats.dns[type].by_domain)
+        .sort(([, a], [, b]) => b.hits - a.hits)
+        .reduce((acc, [key, value]) => {
+          acc[key] = value;
+          return acc;
+        }, {});
+      }
+
+      // Cutoff top n queried domains
+      const top_n = 50;
+      const topDomains = Object.entries(stats.dns.resolutions.by_domain).splice(0, top_n);
+      let topList = {}
+      for (let d of topDomains) {
+        const requests = stats.dns.resolutions.by_domain[d];
+        const share    = Math.floor(1000 * requests / stats.dns.resolutions.total_events) / 10 + '%';
+        topList[d]     = {'Queries': requests, '%': share}; 
+      }
+      // Override top queried field in stats object
+      stats.dns.top_queried_domains = topList;
+      
+
+    } catch (error) {
+      console.log('[ERROR] in analyzeStats:', error)
+    } finally {
+      await sleep(updateTimeMs);
+    }
+  }
+  
 }

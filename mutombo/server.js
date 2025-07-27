@@ -11,14 +11,19 @@ const { loadJSON,
         _hash, 
         log, 
         configUpdater, 
+        analyzeStats,
         loadConfig,
-        stripURLtoDomain} = require('#utils');
+        stripURLtoDomain,
+        collectRequestInfoForStats} = require('#utils');
 const { RDNS }      = require('#rdns');
 const { Blocker }   = require('#block');
 
 // Paths
 const staticPath    = path.join(__dirname, 'public/static');
 const logPath       = path.join(__dirname, 'logs');
+
+
+
 
 (async () => {
     
@@ -27,6 +32,24 @@ const logPath       = path.join(__dirname, 'logs');
     var upload          = multer({ dest: 'data/img/' }); // image access
     const urlPattern    = /^[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]*$/;
     var authenticated   = false;
+
+    // Caching Globals
+    // Statistics Aggregation
+    var stats = {
+        dns: {
+            top_queried_domains: {},
+            resolutions: {
+                total_events: 0,
+                by_domain: {}, // separated count by domain
+                timeseries: {} // unified from all domains
+            },
+            blocks: {
+                total_events: 0,
+                by_domain: {},
+                timeseries: {}
+            }
+        }
+    }
 
     // ---- Load Modules ----
     // Load RDNS Service
@@ -39,8 +62,10 @@ const logPath       = path.join(__dirname, 'logs');
     // Run a dynamic config updater
     // Safe background loop to reload config
     const configReloadTimeMs = 1000;
-    // const configSaveCopy = config;
     configUpdater(config, configReloadTimeMs);
+    // Run stats analysis repeatedly
+    const statsAnalysisTimeMs = 5000;
+    analyzeStats(stats, statsAnalysisTimeMs);
 
 
     // ---- Web Server & API endpoints ----
@@ -104,7 +129,7 @@ const logPath       = path.join(__dirname, 'logs');
         // Login wall. 
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         
-        // Serve the most recent state.
+        // Serve the most recent state of the config object
         if (req.body.mode === 'get') {
             // Source the config
             config = await loadConfig();
@@ -166,6 +191,13 @@ const logPath       = path.join(__dirname, 'logs');
                 return res.json({msg: `Successfully removed "${blockListName}" from blocklists.`})
 
             }
+        }
+    });
+
+    // Statistics dedicated end-point (pure get end-point)
+    app.post('/stats', async (req, res) => {
+        if (req.body.type === 'dns') {
+            res.json(stats.dns)
         }
     });
 
@@ -256,13 +288,17 @@ const logPath       = path.join(__dirname, 'logs');
 
         // Before resolving, check for forbidden domains via blocker.
         // What would the server expect as answer? 0.0.0.0? or just send "blocked"
-        if (blocker.blocked(domain))
+        if (blocker.blocked(domain)) {
+            collectRequestInfoForStats(domain, stats, 'blocks', req);
             return res.status(403).send({ error: "Domain is blocked." });
+        }
 
         // Try to resolve the domain via RDNS,
         // in case the IP cannot be resolved the resolve method 
         // returns a null IP i.e. 0.0.0.0
         const ip = await rdns.resolve(domain);
+        if (ip !== '0.0.0.0')
+            collectRequestInfoForStats(domain, stats, 'request', req);
         
         // Send the IP which at this point should be defined.
         return res.send(ip);

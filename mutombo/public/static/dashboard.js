@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { loadBackground, loadState, getSearchEndpoint, config } from './api.js';
 import { create, movingContainer, focusContainer, autoPlaceContainer, createTableFromJSON, filterTableByValues } from './container.js';
 
-
+// ============ Navigation Container ============
 /**
  * Loads the navigation container.
  */
@@ -95,6 +95,7 @@ async function hashURL (url) {
     .join('');
 }
 
+// ============ Blocklist Container ============
 /**
  * Loads the content to previously constructed container.
  * @param {movingContainer} container movingContainer instance
@@ -103,14 +104,63 @@ async function hashURL (url) {
 async function  loadBlocklistContainerContent (container) {
 
     let containerBody = container.body;
+    containerBody.classList.add('container');
+    containerBody.style.paddingLeft = '20px';
+    containerBody.style.paddingRight = '20px';
 
     // Request blocklists from server
     const blocklists = await config('get', 'blocking.blocklists');
     console.log('blocklists', blocklists);
 
-    const blockListTable = createTableFromJSON(blocklists, containerBody.id);
+    // -------- Add New Blocklist Utility --------
+    const inputWrapper = create('div', 'blocklists-input-wrapper', containerBody);
+    inputWrapper.classList.add('row', 'justify-content-md-center');
+    inputWrapper.style.marginBottom = '20px';
+    inputWrapper.style.marginTop = '20px';
+
+    // Input for URL
+    const inputCol = create('div', '', inputWrapper);
+    inputCol.classList.add('col-6');
+    const newBlocklistInput = create('input', 'blocklist-input', inputCol);
+    newBlocklistInput.type = 'text';
+    newBlocklistInput.style.width = '100%';
+    newBlocklistInput.classList.add('bg-dark-medium');
+    newBlocklistInput.placeholder = 'blocklist URL ...'
+
+    // Select blocklist label
+    const  selectCol = create('div', '', inputWrapper);
+    selectCol.classList.add('col-4');
+    const newBlocklistSelect = create('select', 'blocklist-label-select', selectCol);
+    newBlocklistSelect.style.width = '100%';
+    newBlocklistSelect.style.height = '100%';
+    newBlocklistSelect.classList.add('bg-dark-medium')
+    const labels = ['ad', 'general', 'mixed', 'security', 'other'];
+    labels.forEach((label) => {
+        let option = create('option', `new-blocklist-${label}-option`);
+        option.text = label;
+        option.classList.add('bg-dark-medium')
+        newBlocklistSelect.options.add(option)
+    })
+
+    // Add submit button
+    const  submitCol = create('div', '', inputWrapper);
+    submitCol.classList.add('col-2');
+    const submitButton = create('button', '', submitCol);
+    submitButton.innerHTML = 'Add';
+    submitButton.style.border = 0;
+
+    // -------- Blocklist Table --------
+    const blockListWrapper = create('div', 'blocklist-overview', containerBody);
+    blockListWrapper.classList.add('row');
+    Object.assign(blockListWrapper.style, {
+        maxHeight: '100%',            // Set height threshold
+        overflowY: 'scroll',           // Enable vertical scroll
+        scrollbarWidth: 'none'         // Hide scrollbar in Firefox
+    });
+    const blockListTable = createTableFromJSON(blocklists, 'blocklist-overview');
     blockListTable.id = 'blocklist-table';
     blockListTable.style.color = 'white';
+    
 
     // Manipulate table to include a row of switches for enabling/disabling blocklists
     filterTableByValues(['true', 'false'], async (matchedCell, matchedValue, row) => {
@@ -133,6 +183,7 @@ async function  loadBlocklistContainerContent (container) {
         toggler.classList.add('form-check-input');
         toggler.style.boxShadow = 'none';
         toggler.type = 'checkbox';
+        toggler.style.userSelect = 'none';
 
         // Style the toggler depending on start value
         if (matchedValue === 'true') {
@@ -184,6 +235,8 @@ async function  loadBlocklistContainerContent (container) {
         // Skip the first header row.
         if (headerSkip) {
             headerSkip = false;
+            const headerCell = document.createElement('th');
+            row.appendChild(headerCell)
             continue;
         }
         
@@ -193,10 +246,9 @@ async function  loadBlocklistContainerContent (container) {
 
         // Create a remove cell
         const removeCell = document.createElement('td');
-        removeCell.innerHTML = '✖️';
         removeCell.style.cursor = 'pointer';
-        const parent = rowEntries[0].parent
         row.appendChild(removeCell);
+        removeCell.innerHTML = '✖️';
 
         // Remove cell acts as a button
         removeCell.addEventListener('click', () => {
@@ -212,7 +264,6 @@ async function  loadBlocklistContainerContent (container) {
     
 }
 
-
 /**
  * Loads the frame and initializes moving Container.
  * @returns {Promise<void>}
@@ -225,6 +276,33 @@ async function loadBlocklistContainer () {
     
     // Load content
     await loadBlocklistContainerContent(container);
+
+}
+
+// ============ Statistics Container ============
+async function loadStatsContainerContent (container) {
+    
+    let containerBody = container.body;
+
+    // Request dns stats from server
+    const dns = await (await fetch('/stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'dns' })
+    })).json();
+    console.log('stats', dns);
+
+    const topQueryTable = createTableFromJSON(dns.top_queried_domains, containerBody.id);
+
+}
+
+async function loadStatsContainer () {
+    
+    // Initialize the container frame
+    let container = new movingContainer('statistics', [ 800, 500 ], "", 'DNS Statistics');
+    autoPlaceContainer('statistics');
+
+    await loadStatsContainerContent(container);
 
 }
 
@@ -243,4 +321,5 @@ export async function dashPage (params) {
     loadBackground(page);
     loadNavigation();
     loadBlocklistContainer();
+    loadStatsContainer();
 }

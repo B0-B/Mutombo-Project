@@ -9,7 +9,6 @@ export async function autoPlaceContainer (containerName) {
     const containerInfo = state.dashboard.containers[containerName];
     const container = document.getElementById(containerInfo.id)
     const pos = containerInfo.position;
-    console.log('pos', pos);
     container.style.left = pos[0] + 'px';
     container.style.top = pos[1] + 'px';
 }
@@ -110,7 +109,6 @@ export class movingContainer {
         this.header = create('div', `container-${this.info.name}-header`, this.element.id);
         this.body = create('div', `container-${this.info.name}-body`, this.element.id);
         this.header.classList.add('moving-container-header');
-        this.body.classList.add('moving-container-body');
         this.header.innerHTML=`<h1>${heading}</h1>`;
         this.header.style.color = 'white';
         this.body.innerHTML = content;

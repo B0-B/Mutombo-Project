@@ -10,6 +10,15 @@ Caches and stores IPs associated to a domain name.
 ### Reverse DNS Server
 Works like a DNS but returns a domain name for a provided IP, i. e. reverses the mapping of the DNS function.
 
+# Dev Status
+
+- [ ] Make moving containers collapsible
+- [ ] Add menu bar for style control to moving containers
+- [ ] Add statistics container in dashboard 
+- [ ] Finish blocklist container in dashboard
+- [ ] Add labels like "ad","phishing" etc. to blocklist objects - this will allow to categorize how a request is blocked by label.
+- [x] Basic API and config synchronization.
+- [x] Basic Container Mechanics in UI.
 
 
 # Development

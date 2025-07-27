@@ -97,13 +97,7 @@ html, body {
   align-items: center;     /* vertical */
 }
 
-/* .moving-container-header > h1 {
+.moving-container-header > h1 {
+  font-size: 2rem;
   text-align: center;
-} */
-
-.moving-container-body {
-  display: flex;
-  align-items: center;
-  vertical-align: middle;
-  padding: 2%;
 }
