@@ -126,6 +126,7 @@ const logPath       = path.join(__dirname, 'logs');
     // State change endpoint.
     app.use(express.json());
     app.post('/state', async (req, res) => {
+
         // Login wall. 
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         console.log('request body', req.body)
@@ -177,7 +178,6 @@ const logPath       = path.join(__dirname, 'logs');
                 
                 return res.json({msg: `Successfully switched "${blockListName}" activity.`})
             }
-
             // Remove blocklist with provided name
             else if (req.body.type === 'remove') {
 
@@ -196,7 +196,6 @@ const logPath       = path.join(__dirname, 'logs');
                 return res.json({msg: `Successfully removed "${blockListName}" from blocklists.`})
 
             }
-
             // Adds new blocklist received from client
             else if (req.body.type === 'add') {
 
@@ -228,11 +227,15 @@ const logPath       = path.join(__dirname, 'logs');
         // Login wall. 
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         
+        
+
         const delimiter = '.';
         if (!req.body.mode)
             return res.json({msg: `/conf-endpoint: No "mode" parameter specified.`, data: {}});
         // Get mode for retrieving data from the config.
         if (req.body.mode == 'get') {
+            // Source config freshly
+            config          = await loadConfig();
             const target = "conf." + req.body.key
             const keyChain      = req.body.key.split(delimiter);
             let currentValue    = config;

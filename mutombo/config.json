@@ -23,7 +23,7 @@
           "blur": 2,
           "position": [
             83,
-            92
+            89
           ],
           "size": [
             800,
@@ -51,13 +51,15 @@
       {
         "name": "adguard dns filter",
         "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
+        "label": "mixed",
         "date": "07/22/25 12:58",
         "active": true
       },
       {
         "name": "the block list project - phishing list",
         "url": "https://blocklistproject.github.io/Lists/phishing.txt",
-        "date": "07/28/25 01:09",
+        "label": "security",
+        "date": "07/29/25 00:59",
         "active": true
       }
     ]

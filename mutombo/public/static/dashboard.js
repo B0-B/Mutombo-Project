@@ -113,6 +113,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function  loadBlocklistContainerContent (container) {
 
     let containerBody = container.body;
+    containerBody.innerHTML = '';
     containerBody.classList.add('container');
     containerBody.style.paddingLeft = '20px';
     containerBody.style.paddingRight = '20px';
@@ -172,10 +173,27 @@ async function  loadBlocklistContainerContent (container) {
             body: JSON.stringify({ mode: 'blocklist', type: 'add', url: blocklistUrl, label: blocklistLabel })
         })).json();
 
+        // Add entry to table
+        await sleep(500); // delay to give the server some time to settle
+        // configawait config('get', 'blocking.blocklists');
+        await loadBlocklistContainerContent(container);
+        // let blocklistTable = document.getElementById('blocklist-table');
+        // const tbody = blockListTable.querySelector('tbody');
+
+
+        // const switchWrapper = create('div', `switch-wrapper-${url}`, matchedCell);
+        // switchWrapper.classList.add('form-check', 'form-switch');
+        // const toggler       = create('input', toggleId, switchWrapper);
+        
+        // for () {
+        //     const tbody = blockListTable.querySelector('tbody');
+        // }
+
         console.log('repsonse', response);
 
         // Output the server response in input placeholder
-        newBlocklistInput.value = '';
+        const _newBlocklistInput = document.getElementById('blocklist-input');
+        _newBlocklistInput.value = '';
         const originalColor = newBlocklistInput.style.color;
         if (response.err) {
             newBlocklistInput.placeholder = response.err; // delete input in UI
@@ -189,8 +207,6 @@ async function  loadBlocklistContainerContent (container) {
         newBlocklistInput.placeholder = 'blocklist URL ...';
 
     });
-
-
 
     // -------- Blocklist Table --------
     const blockListWrapper = create('div', 'blocklist-overview', containerBody);
@@ -264,7 +280,7 @@ async function  loadBlocklistContainerContent (container) {
 
         });
 
-    }, 3);
+    }, 4);
 
 
     // Add an delete/remove-button for each row
@@ -292,12 +308,14 @@ async function  loadBlocklistContainerContent (container) {
 
         // Remove cell acts as a button
         removeCell.addEventListener('click', () => {
+            // Remove row from table
             row.remove();
+            // Remove the blocklist from state
             fetch('/state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mode: 'blocklist', name: blockListName, type: 'remove' })
-            }) 
+            });
         });
 
     }
@@ -312,7 +330,7 @@ async function  loadBlocklistContainerContent (container) {
     })
 
     // Set relative column spacing 
-    setRelativeColumnWidths(blockListTable, [0.3, 0.3, 0.2, 0.1, 0.1])
+    setRelativeColumnWidths(blockListTable, [0.3, 0.2, 0.1, 0.2, 0.1, 0.1])
     
 }
 

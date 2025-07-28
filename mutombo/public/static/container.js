@@ -302,6 +302,7 @@ export function setRelativeColumnWidths (table, relativeSpacing) {
   if (rows.length < 2) return;
 
   const cellCount = rows[1].children.length;
+  console.log('TEST***', cellCount, relativeSpacing.length);
   if (relativeSpacing.length !== cellCount) {
     throw new Error('spacing_relation length must match column count.');
   }
