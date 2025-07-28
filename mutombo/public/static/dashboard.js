@@ -7,6 +7,7 @@ import { create,
          createTableFromJSON, 
          filterTableByValues,
          filterTableByColumn,
+         setRelativeColumnWidths,
          style } from './container.js';
 
 // ============ Navigation Container ============
@@ -258,7 +259,7 @@ async function  loadBlocklistContainerContent (container) {
             fetch('/state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode: 'blocklist', type: 'activity', name: blockListName })
+                body: JSON.stringify({ mode: 'blocklist', type: 'activity', value: activity, name: blockListName })
             });
 
         });
@@ -309,7 +310,9 @@ async function  loadBlocklistContainerContent (container) {
             cell.style.textOverflow = 'ellipsis';
         })
     })
-    
+
+    // Set relative column spacing 
+    setRelativeColumnWidths(blockListTable, [0.3, 0.3, 0.2, 0.1, 0.1])
     
 }
 

@@ -128,7 +128,8 @@ const logPath       = path.join(__dirname, 'logs');
     app.post('/state', async (req, res) => {
         // Login wall. 
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
-        
+        console.log('request body', req.body)
+
         // Serve the most recent state of the config object
         if (req.body.mode === 'get') {
             // Source the config
@@ -153,16 +154,19 @@ const logPath       = path.join(__dirname, 'logs');
         else if (req.body.mode === 'blocklist') {
 
             // Check if activity is defined as a boolean
-            if (typeof req.body.type === 'activity') {
-
+            if (req.body.type === 'activity') {
+                
                 // Short sanity check
                 if (!req.body.name) return res.status(403).send(`[ERROR] No 'name' parameter provided to specify the container!`);
+                if (!(typeof req.body.value === 'boolean')) return res.status(403).send(`[ERROR] No 'value' parameter provided to specify the container!`);
+                
                 const blockListName = req.body.name;
 
                 // Source the blocklist in config array and set activity
                 for (let blocklist of config.blocking.blocklists) {
-                    if (blocklist.name === blockListName) {
-                        blocklist.active = req.body.activity;
+                    console.log('TEST', blocklist.active, req.body.activity, blocklist.name, blockListName)
+                    if (blocklist.name === blockListName){ //&& typeof req.body.activity === 'boolean') {
+                        blocklist.active = req.body.value;
                         break
                     }
                 }
@@ -175,7 +179,7 @@ const logPath       = path.join(__dirname, 'logs');
             }
 
             // Remove blocklist with provided name
-            else if (typeof req.body.type === 'remove') {
+            else if (req.body.type === 'remove') {
 
                 // Short sanity check
                 if (!req.body.name) return res.status(403).send(`[ERROR] No 'name' parameter provided to specify the container!`);
@@ -194,7 +198,7 @@ const logPath       = path.join(__dirname, 'logs');
             }
 
             // Adds new blocklist received from client
-            else if (typeof req.body.type === 'add') {
+            else if (req.body.type === 'add') {
 
                 try {
                     const url = req.body.url, label = req.body.label;
@@ -214,7 +218,7 @@ const logPath       = path.join(__dirname, 'logs');
     // Statistics dedicated end-point (pure get end-point)
     app.post('/stats', async (req, res) => {
         if (req.body.type === 'dns') {
-            res.json(stats.dns)
+            return res.json(stats.dns)
         }
     });
 

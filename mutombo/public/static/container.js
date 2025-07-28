@@ -292,6 +292,33 @@ export function filterTableByColumn (table, columnIndex, callback) {
 }
 
 /**
+ * Iterates through table rows and calls callback on cells which are in specific column.
+ * @param {HTMLElement} table - Table to operate on.
+ * @param {number} relativeSpacing - Array of relative spacings e.g. [0.2, 0.4, 0.1, 0.2, 0.1]. Note that all spacings need to add up to 1.
+ * @returns {void}
+ */
+export function setRelativeColumnWidths (table, relativeSpacing) {
+  const rows = table.querySelectorAll('tbody tr');
+  if (rows.length < 2) return;
+
+  const cellCount = rows[1].children.length;
+  if (relativeSpacing.length !== cellCount) {
+    throw new Error('spacing_relation length must match column count.');
+  }
+
+  // Total width percentage must add up to 100%
+  const total = relativeSpacing.reduce((sum, val) => sum + val, 0);
+  const percents = relativeSpacing.map(r => (r / total) * 100);
+
+  rows.forEach(row => {
+    Array.from(row.children).forEach((cell, i) => {
+      cell.style.width = `${percents[i]}%`;
+    });
+  });
+}
+
+
+/**
  * Styles an HTML element with a whole set of attributes at once.
  * @param {HTMLElement} element 
  * @param {object} stylingObject 
