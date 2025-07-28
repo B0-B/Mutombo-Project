@@ -1,6 +1,13 @@
 import { state } from './state.js';
 import { loadBackground, loadState, getSearchEndpoint, config } from './api.js';
-import { create, movingContainer, focusContainer, autoPlaceContainer, createTableFromJSON, filterTableByValues } from './container.js';
+import { create, 
+         movingContainer, 
+         focusContainer, 
+         autoPlaceContainer, 
+         createTableFromJSON, 
+         filterTableByValues,
+         filterTableByColumn,
+         style } from './container.js';
 
 // ============ Navigation Container ============
 /**
@@ -96,6 +103,7 @@ async function hashURL (url) {
 }
 
 // ============ Blocklist Container ============
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 /**
  * Loads the content to previously constructed container.
  * @param {movingContainer} container movingContainer instance
@@ -125,7 +133,7 @@ async function  loadBlocklistContainerContent (container) {
     newBlocklistInput.type = 'text';
     newBlocklistInput.style.width = '100%';
     newBlocklistInput.classList.add('bg-dark-medium');
-    newBlocklistInput.placeholder = 'blocklist URL ...'
+    newBlocklistInput.placeholder = 'blocklist URL ...';
 
     // Select blocklist label
     const  selectCol = create('div', '', inputWrapper);
@@ -146,13 +154,47 @@ async function  loadBlocklistContainerContent (container) {
     const  submitCol = create('div', '', inputWrapper);
     submitCol.classList.add('col-2');
     const submitButton = create('button', '', submitCol);
+    style(submitButton, { border: 0, backgroundColor: '#167adeff', color: '#fff', height: '100%' });
     submitButton.innerHTML = 'Add';
-    submitButton.style.border = 0;
+
+    // Submit routine
+    submitButton.addEventListener('click', async () => {
+        
+        console.log('submit blocklist url ...')
+        const blocklistUrl   = newBlocklistInput.value;
+        const blocklistLabel = newBlocklistSelect.value;
+        
+        // Send url and label to server
+        const response = await (await fetch('/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'blocklist', type: 'add', url: blocklistUrl, label: blocklistLabel })
+        })).json();
+
+        console.log('repsonse', response);
+
+        // Output the server response in input placeholder
+        newBlocklistInput.value = '';
+        const originalColor = newBlocklistInput.style.color;
+        if (response.err) {
+            newBlocklistInput.placeholder = response.err; // delete input in UI
+            newBlocklistInput.style.setProperty('--c', '#e91f4bff');
+        } else {
+            newBlocklistInput.placeholder = response.msg;
+            newBlocklistInput.style.setProperty('--c', '#0ee182ff');
+        }
+        await sleep(5000); // little delay
+        newBlocklistInput.style.color = originalColor;
+        newBlocklistInput.placeholder = 'blocklist URL ...';
+
+    });
+
+
 
     // -------- Blocklist Table --------
     const blockListWrapper = create('div', 'blocklist-overview', containerBody);
     blockListWrapper.classList.add('row');
-    Object.assign(blockListWrapper.style, {
+    style(blockListWrapper, {
         maxHeight: '100%',            // Set height threshold
         overflowY: 'scroll',           // Enable vertical scroll
         scrollbarWidth: 'none'         // Hide scrollbar in Firefox
@@ -163,7 +205,7 @@ async function  loadBlocklistContainerContent (container) {
     
 
     // Manipulate table to include a row of switches for enabling/disabling blocklists
-    filterTableByValues(['true', 'false'], async (matchedCell, matchedValue, row) => {
+    filterTableByValues(blockListTable, ['true', 'false'], async (matchedCell, matchedValue, row) => {
 
         // Unpack rows
         const rowEntries = row.querySelectorAll('td');
@@ -181,19 +223,16 @@ async function  loadBlocklistContainerContent (container) {
         switchWrapper.classList.add('form-check', 'form-switch');
         const toggler       = create('input', toggleId, switchWrapper);
         toggler.classList.add('form-check-input');
-        toggler.style.boxShadow = 'none';
+        style(toggler, {boxShadow: 'none', userSelect: 'none'});
         toggler.type = 'checkbox';
-        toggler.style.userSelect = 'none';
 
         // Style the toggler depending on start value
         if (matchedValue === 'true') {
             toggler.checked = true
-            toggler.style.backgroundColor = '#28a745'; // Bootstrap green
-            toggler.style.borderColor = '#28a745';
+            style(toggler, {backgroundColor: '#28a745', borderColor: '#28a745'});
         } else {
             toggler.checked = false
-            toggler.style.backgroundColor = '#ccc';
-            toggler.style.borderColor = '#383838';
+            style(toggler, {backgroundColor: '#ccc', borderColor: '#383838'});
         }
 
         // Append eventlistener to toggle input
@@ -219,7 +258,7 @@ async function  loadBlocklistContainerContent (container) {
             fetch('/state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode: 'blocklist', activity: activity, name: blockListName })
+                body: JSON.stringify({ mode: 'blocklist', type: 'activity', name: blockListName })
             });
 
         });
@@ -256,11 +295,21 @@ async function  loadBlocklistContainerContent (container) {
             fetch('/state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode: 'blocklist', name: blockListName, remove: true })
+                body: JSON.stringify({ mode: 'blocklist', name: blockListName, type: 'remove' })
             }) 
         });
 
     }
+
+    // Add ellipsis to all urls and names texts on overflow
+    [0, 1].forEach((rowIndex) => {
+        filterTableByColumn(blockListTable, rowIndex, (cell, row, col) => {
+            cell.style.whiteSpace = 'nowrap';
+            cell.style.overflow = 'hidden';
+            cell.style.textOverflow = 'ellipsis';
+        })
+    })
+    
     
 }
 

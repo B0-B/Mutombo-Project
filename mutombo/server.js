@@ -151,16 +151,13 @@ const logPath       = path.join(__dirname, 'logs');
         }
         // Blocklist activity setting
         else if (req.body.mode === 'blocklist') {
-            
-            // Short sanity check
-            if (!req.body.name) {
-                return res.status(403).send(`[ERROR] No 'name' parameter provided to specify the container!`)
-            }
-
-            const blockListName = req.body.name;
 
             // Check if activity is defined as a boolean
-            if (typeof req.body.activity === 'boolean') {
+            if (typeof req.body.type === 'activity') {
+
+                // Short sanity check
+                if (!req.body.name) return res.status(403).send(`[ERROR] No 'name' parameter provided to specify the container!`);
+                const blockListName = req.body.name;
 
                 // Source the blocklist in config array and set activity
                 for (let blocklist of config.blocking.blocklists) {
@@ -178,7 +175,11 @@ const logPath       = path.join(__dirname, 'logs');
             }
 
             // Remove blocklist with provided name
-            else if (typeof req.body.remove === 'boolean') {
+            else if (typeof req.body.type === 'remove') {
+
+                // Short sanity check
+                if (!req.body.name) return res.status(403).send(`[ERROR] No 'name' parameter provided to specify the container!`);
+                const blockListName = req.body.name;
 
                 // Remove the blocklist from config array
                 const index = config.blocking.blocklists.findIndex(obj => obj.name === req.body.name);
@@ -190,6 +191,22 @@ const logPath       = path.join(__dirname, 'logs');
                 
                 return res.json({msg: `Successfully removed "${blockListName}" from blocklists.`})
 
+            }
+
+            // Adds new blocklist received from client
+            else if (typeof req.body.type === 'add') {
+
+                try {
+                    const url = req.body.url, label = req.body.label;
+                    await blocker.addNewBlockList(url, label);
+                    return res.json({msg: `Successfully added new blocklist!`})
+                } catch (error) {
+                    console.log('[/state.add][ERROR]', error);
+                    return res.json({err: `Failed to add blocklist!`})
+                }
+                
+            } else {
+                return res.status(400).send(`[ERROR] No valid parameters provided!`);
             }
         }
     });

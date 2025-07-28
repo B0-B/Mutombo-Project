@@ -65,9 +65,17 @@ export class Blocker {
         const lines     = plaintext.split('\n');
         let blocklistDomainArray = [];
         for (let line of lines) {
-            if (!line.includes('||'))
+            if (line.includes('!') || line[0] === '#')
                 continue;
+            // For format "||example.com^"
             let domain = line.replace('||', '').replace('^', '');
+            // For format "local=/2288.org/"
+            domain = domain.replace('local=/', '').replace('/');
+            // If 0 address is included "0.0.0.0 86apple.com"
+            domain = domain.replace('0.0.0.0', '');
+            // Trim the domain finally
+            domain = domain.trim();
+            // Add to domain array
             blocklistDomainArray.push(domain);
         }
 
@@ -118,10 +126,11 @@ export class Blocker {
     }
 
     /**
-     * Adds new blocklist object from url to config and directly sources all domains into the blocker.
+     * Adds new blocklist object derived from url to config and directly sources all domains into the blocker.
      * @param {object} raw_blocklist_url - A blocklist url.
+     * @param {object} label - A blocklist label for categorization.
      */
-    async addNewBlockList (raw_blocklist_url) {
+    async addNewBlockList (raw_blocklist_url, label) {
 
         try {
 
@@ -139,8 +148,9 @@ export class Blocker {
             let blocklistObject = {
                 name: raw_blocklist_url,
                 url: raw_blocklist_url,
+                label: label,
                 date: timestamp(),
-                active: true
+                active: true,
             }
 
             // Fetch in plaintext
@@ -154,7 +164,7 @@ export class Blocker {
             // Parse a proper list name
             const lines = plaintext.split('\n');
             for (let line of lines) {
-                if (line.toLowerCase().includes('!') && line.toLowerCase().includes('title:')) {
+                if ((line[0] === '!' || line[0] === '#') && line.toLowerCase().includes('title:')) {
                     blocklistObject.name = line.toLowerCase().split('title:').slice(-1)[0].trim();
                     break;
                 }
@@ -171,8 +181,9 @@ export class Blocker {
 
         } catch (error) {
             
-            console.log(`Failed to add blocklist "${blocklistObject.name}":\n${error}`)
-
+            console.log(`Failed to add blocklist:\n${error}`);
+            throw Error(error)
+            
         }
         
 

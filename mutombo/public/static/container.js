@@ -248,12 +248,13 @@ export function createTableFromJSON (jsonList,
  * Iterates through table rows and calls callback on cells matching any target value.
  * Skips header row. If no columnIndex is given, checks all columns.
  *
+ * @param {HTMLElement} table - Table to operate on.
  * @param {string[]} targetValues - Array of strings to match.
  * @param {Function} callback - Called with (matchedCell, matchedValue, row).
  * @param {number} [columnIndex] - Optional index of the column to check. If omitted, checks all columns.
  */
-export function filterTableByValues(targetValues, callback, columnIndex = null) {
-    const table = document.getElementById('blocklist-table');
+export function filterTableByValues(table, targetValues, callback, columnIndex = null) {
+
     const rows = table.querySelectorAll('tbody tr');
 
     for (let i = 1; i < rows.length; i++) { // Skip header
@@ -274,3 +275,28 @@ export function filterTableByValues(targetValues, callback, columnIndex = null) 
     }
 }
 
+/**
+ * Iterates through table rows and calls callback on cells which are in specific column.
+ * @param {HTMLElement} table - Table to operate on.
+ * @param {number} [columnIndex] - Optional index of the column to check. If omitted, checks all columns.
+ * @param {Function} callback - Called with (matchedCell, row, col).
+ */
+export function filterTableByColumn (table, columnIndex, callback) {
+    const rows = table.querySelectorAll('tbody tr');
+    if (columnIndex < 0 || columnIndex >= rows.length) throw Error('columnIndex outside bounds.')
+    for (let i = 1; i < rows.length; i++) { // Skip header
+        const row = rows[i].querySelectorAll('td');
+        const cell = row[columnIndex];
+        callback(cell, i, columnIndex)
+    }
+}
+
+/**
+ * Styles an HTML element with a whole set of attributes at once.
+ * @param {HTMLElement} element 
+ * @param {object} stylingObject 
+ * @returns {void}
+ */
+export function style (element, stylingObject) {
+    Object.assign(element.style, stylingObject);
+}
