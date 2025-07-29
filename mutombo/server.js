@@ -165,7 +165,7 @@ const logPath       = path.join(__dirname, 'logs');
 
                 // Source the blocklist in config array and set activity
                 for (let blocklist of config.blocking.blocklists) {
-                    console.log('TEST', blocklist.active, req.body.activity, blocklist.name, blockListName)
+                    // console.log('TEST', blocklist.active, req.body.activity, blocklist.name, blockListName)
                     if (blocklist.name === blockListName){ //&& typeof req.body.activity === 'boolean') {
                         blocklist.active = req.body.value;
                         break
@@ -205,7 +205,8 @@ const logPath       = path.join(__dirname, 'logs');
                     return res.json({msg: `Successfully added new blocklist!`})
                 } catch (error) {
                     console.log('[/state.add][ERROR]', error);
-                    return res.json({err: `Failed to add blocklist!`})
+                    // Ensure the error
+                    return res.json({ err: error.message || 'An unexpected error occurred' });
                 }
                 
             } else {

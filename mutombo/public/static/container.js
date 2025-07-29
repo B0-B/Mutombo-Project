@@ -292,9 +292,9 @@ export function filterTableByColumn (table, columnIndex, callback) {
 }
 
 /**
- * Iterates through table rows and calls callback on cells which are in specific column.
+ * Modifies flexing table with column-wise spacing percentage.
  * @param {HTMLElement} table - Table to operate on.
- * @param {number} relativeSpacing - Array of relative spacings e.g. [0.2, 0.4, 0.1, 0.2, 0.1]. Note that all spacings need to add up to 1.
+ * @param {Array<number>} relativeSpacing - Array of relative spacings e.g. [0.2, 0.4, 0.1, 0.2, 0.1]. Note that all spacings need to add up to 1.
  * @returns {void}
  */
 export function setRelativeColumnWidths (table, relativeSpacing) {
@@ -302,9 +302,8 @@ export function setRelativeColumnWidths (table, relativeSpacing) {
   if (rows.length < 2) return;
 
   const cellCount = rows[1].children.length;
-  console.log('TEST***', cellCount, relativeSpacing.length);
   if (relativeSpacing.length !== cellCount) {
-    throw new Error('spacing_relation length must match column count.');
+    throw new Error('"relativeSpacing" length must match column count.');
   }
 
   // Total width percentage must add up to 100%

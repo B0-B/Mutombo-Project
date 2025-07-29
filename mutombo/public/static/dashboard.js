@@ -135,15 +135,23 @@ async function  loadBlocklistContainerContent (container) {
     newBlocklistInput.type = 'text';
     newBlocklistInput.style.width = '100%';
     newBlocklistInput.classList.add('bg-dark-medium');
-    newBlocklistInput.placeholder = 'blocklist URL ...';
+    newBlocklistInput.placeholder = 'Add blocklist URL ...';
 
-    // Select blocklist label
+    // Select element for blocklist label selection
     const  selectCol = create('div', '', inputWrapper);
     selectCol.classList.add('col-4');
     const newBlocklistSelect = create('select', 'blocklist-label-select', selectCol);
     newBlocklistSelect.style.width = '100%';
     newBlocklistSelect.style.height = '100%';
-    newBlocklistSelect.classList.add('bg-dark-medium')
+    newBlocklistSelect.classList.add('bg-dark-medium');
+    // Create the placeholder option
+    const placeholder = document.createElement("option");
+    placeholder.textContent = "Select Category";
+    placeholder.value = "";
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    newBlocklistSelect.options.add(placeholder);
+    // Add other real selectable labels
     const labels = ['ad', 'general', 'mixed', 'security', 'other'];
     labels.forEach((label) => {
         let option = create('option', `new-blocklist-${label}-option`);
@@ -174,7 +182,7 @@ async function  loadBlocklistContainerContent (container) {
         })).json();
 
         // Add entry to table
-        await sleep(500); // delay to give the server some time to settle
+        await sleep(100); // delay to give the server some time to settle
         // configawait config('get', 'blocking.blocklists');
         await loadBlocklistContainerContent(container);
         // let blocklistTable = document.getElementById('blocklist-table');
@@ -192,19 +200,24 @@ async function  loadBlocklistContainerContent (container) {
         console.log('repsonse', response);
 
         // Output the server response in input placeholder
+        await sleep(100);
         const _newBlocklistInput = document.getElementById('blocklist-input');
         _newBlocklistInput.value = '';
-        const originalColor = newBlocklistInput.style.color;
+        const originalColor = _newBlocklistInput.style.color;
         if (response.err) {
-            newBlocklistInput.placeholder = response.err; // delete input in UI
-            newBlocklistInput.style.setProperty('--c', '#e91f4bff');
+            console.log('TEST *****', _newBlocklistInput)
+            _newBlocklistInput.placeholder = response.err.replace('Error: ', ''); // delete input in UI
+            _newBlocklistInput.style.setProperty('--c', '#e91f4bff');
+            console.log('TEST 3')
         } else {
-            newBlocklistInput.placeholder = response.msg;
-            newBlocklistInput.style.setProperty('--c', '#0ee182ff');
+            _newBlocklistInput.placeholder = response.msg;
+            _newBlocklistInput.style.setProperty('--c', '#0ee182ff');
         }
+        console.log('TEST 4')
         await sleep(5000); // little delay
-        newBlocklistInput.style.color = originalColor;
-        newBlocklistInput.placeholder = 'blocklist URL ...';
+        console.log('TEST 5')
+        _newBlocklistInput.style.color = originalColor;
+        _newBlocklistInput.placeholder = 'blocklist URL ...';
 
     });
 

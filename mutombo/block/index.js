@@ -141,7 +141,7 @@ export class Blocker {
             // Skip if the url is already known.
             for (let list of this.blocklists) {
                 if (list.url == raw_blocklist_url)
-                    return
+                    throw Error(`The blocklist exists already!`)
             }
 
             // Create new blocklist object
