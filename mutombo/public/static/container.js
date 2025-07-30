@@ -160,9 +160,11 @@ export class movingContainer {
  * and appends it to the provided parentId element.
  * @param {Array[object]} jsonList - Array of identically structured json objects.
  * @param {string} parentId - id of the parent element in which to place the table.
- * @param {string} resolveLinks - will detect and resolve links for interaction in cell entries, 
+ * @param {boolean} resolveLinks - will detect and resolve links for interaction in cell entries, 
  * @param {string} cellOverflow - default: 'hidden', other could be line-break etc.
+ * @param {boolean} outlines - default: false, will set outlines to table
  * @param {boolean} striped - if enabled will add alternating shades to table rows (for better readability)
+ * @param {boolean} darkMode - only if striped is enabled will turn the stripe style dark.
  * @param {string} tableLayout - the table layout, default: fixed.
  * @param {string} verticalCellAlign - vertical alignment within the cell
  * @returns {HTMLElement} - the final table.
@@ -171,7 +173,9 @@ export function createTableFromJSON (jsonList,
                                      parentId,
                                      resolveLinks=true, 
                                      cellOverflow='hidden',
+                                     outlines=false,
                                      striped=false, 
+                                     darkMode=false,
                                      tableLayout='fixed', 
                                      verticalCellAlign='middle') {
     
@@ -191,12 +195,10 @@ export function createTableFromJSON (jsonList,
     table.style.tableLayout = tableLayout;
     table.style.width = '100%'
 
-    // FORWARD A CLASS METHOD
-    if (striped) {
-        table.classList.add('table');
-        table.classList.add('table-striped');
-    }
-    
+    // Table styling (using bootstrap css classes)
+    if (outlines) table.classList.add('table');
+    if (darkMode) table.classList.add('table-dark');
+    if (striped)  table.classList.add('table-striped');
 
     // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
     var tr = table.insertRow(-1);                   // TABLE ROW.
@@ -236,7 +238,6 @@ export function createTableFromJSON (jsonList,
     // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
     if (parentId) {
         var divContainer = document.getElementById(parentId);
-        divContainer.innerHTML = "";
         divContainer.appendChild(table);
     }
 

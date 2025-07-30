@@ -202,7 +202,7 @@ export async function collectRequestInfoForStats (domain, stats, type, req) {
 
   // Create a timeseries entry
   const timeString = timestamp();
-  const timestamp = parseTimestamp(timeString);
+  const _timestamp = parseTimestamp(timeString);
 
   // *** TIMESERIES ENTRY FORMAT ***
   const entry = {
@@ -213,7 +213,7 @@ export async function collectRequestInfoForStats (domain, stats, type, req) {
   }
 
   // Aggregate the entry
-  stats.dns[type].timeseries[timestamp] = entry;
+  stats.dns[type].timeseries[_timestamp] = entry;
 
   // Add the count by domain
   if (domain in stats.dns[type].by_domain) {
@@ -239,22 +239,28 @@ export async function analyzeStats (stats, updateTimeMs) {
       // Sort requests and blocks 
       for (let type of ['resolutions', 'blocks']) {
         stats.dns[type].by_domain = Object.entries(stats.dns[type].by_domain)
-        .sort(([, a], [, b]) => b.hits - a.hits)
-        .reduce((acc, [key, value]) => {
-          acc[key] = value;
-          return acc;
-        }, {});
+          .sort(([, a], [, b]) => b - a) // Sort by numeric value descending
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {});
       }
+
 
       // Cutoff top n queried domains
       const top_n = 50;
       const topDomains = Object.entries(stats.dns.resolutions.by_domain).splice(0, top_n);
-      let topList = {}
+      let topList = [];
       for (let d of topDomains) {
-        const requests = stats.dns.resolutions.by_domain[d];
-        const share    = Math.floor(1000 * requests / stats.dns.resolutions.total_events) / 10 + '%';
-        topList[d]     = {'Queries': requests, '%': share}; 
+        const domain = d[0];
+        const requests = stats.dns.resolutions.by_domain[domain];
+        var share = 0;
+        if (stats.dns.resolutions.total_events != 0) { // avoid 0 division
+          share    = Math.floor(1000 * requests / stats.dns.resolutions.total_events) / 10 + '%';
+        }
+        topList.push({domain: domain, queries: requests, share: share}); 
       }
+
       // Override top queried field in stats object
       stats.dns.top_queried_domains = topList;
       

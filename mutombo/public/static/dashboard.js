@@ -27,27 +27,28 @@ async function loadNavigation () {
     let navi = new movingContainer('navigation', [ navWidth, navHeight ]);
     autoPlaceContainer('navigation');
 
+    // Extract body element
+    const containerBody = navi.body;
+    containerBody.classList.add('container');
+
     // ==== Navigation Search Bar ====
     // ---- HTML Structure ----
-    let searchContainer = create('div', 'nav-search-bar-container', navi.header);
-    let searchInput     = create('input', 'nav-search-bar-input', 'nav-search-bar-container');
-    let searchButton    = create('button', 'nav-search-bar-button', 'nav-search-bar-container');
+    let searchRow = create('div', 'nav-search-bar-container', containerBody);
+    searchRow.classList.add('row', 'no-gutters');
+    let searchInputCol  = create('div', 'nav-search-input-col', searchRow);
+    searchInputCol.classList.add('col-5');
+    let searchInput     = create('input', 'nav-search-bar-input', searchInputCol);
+    searchInput.style.height = '100%';
+    searchInput.placeholder = 'web search ...';
+    let searchButtonCol = create('div', 'nav-search-button-col', searchRow);
+    searchButtonCol.classList.add('col-1', 'p-0');
+    let searchButton    = create('button', 'nav-search-bar-button', searchButtonCol);
+    searchButton.classList.add('rounded-button');
 
     // Retrieve current search engine endpoint
     const searchEngineEndpoint = await getSearchEndpoint();
     console.log('search engine:', searchEngineEndpoint);
 
-    // ---- Styling ----
-    // style container
-    searchContainer.style.display = 'inline-flex';
-    searchContainer.style.alignItems = 'center';
-    searchContainer.style.justifyContent = 'center';
-    searchContainer.style.height = navHeight + 'px';
-    // style input
-    searchInput.placeholder = 'web search ...';
-    searchInput.style.height = navElementHeight + 'px';
-    searchInput.style.fontSize = navFontSize + 'px';
-    searchInput.style.maxWidth = Math.floor(0.4 * navWidth) + 'px';
     // Event listener for enter key submission, works only while the input is focused.
     searchInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
@@ -59,21 +60,23 @@ async function loadNavigation () {
     // style search button
     function renderSVG(height) {
         return `
-            <svg id="nav-search-bar-search-icon" xmlns="http://www.w3.org/2000/svg"  width="100" height="${height}" viewBox="0 0 128 128">
+            <svg id="nav-search-bar-search-icon" xmlns="http://www.w3.org/2000/svg"  width="50" height="${height}" viewBox="0 0 128 128">
                 <path fill="white" d="M 52.349609 14.400391 C 42.624609 14.400391 32.9 18.1 25.5 25.5 C 10.7 40.3 10.7 64.399219 25.5 79.199219 C 32.9 86.599219 42.600391 90.300781 52.400391 90.300781 C 62.200391 90.300781 71.900781 86.599219 79.300781 79.199219 C 94.000781 64.399219 93.999219 40.3 79.199219 25.5 C 71.799219 18.1 62.074609 14.400391 52.349609 14.400391 z M 52.300781 20.300781 C 60.500781 20.300781 68.700391 23.399219 74.900391 29.699219 C 87.400391 42.199219 87.4 62.5 75 75 C 62.5 87.5 42.199219 87.5 29.699219 75 C 17.199219 62.5 17.199219 42.199219 29.699219 29.699219 C 35.899219 23.499219 44.100781 20.300781 52.300781 20.300781 z M 52.300781 26.300781 C 45.400781 26.300781 38.9 29 34 34 C 29.3 38.7 26.700391 44.800391 26.400391 51.400391 C 26.300391 53.100391 27.600781 54.4 29.300781 54.5 L 29.400391 54.5 C 31.000391 54.5 32.300391 53.199609 32.400391 51.599609 C 32.600391 46.499609 34.699219 41.799219 38.199219 38.199219 C 41.999219 34.399219 47.000781 32.300781 52.300781 32.300781 C 54.000781 32.300781 55.300781 31.000781 55.300781 29.300781 C 55.300781 27.600781 54.000781 26.300781 52.300781 26.300781 z M 35 64 A 3 3 0 0 0 32 67 A 3 3 0 0 0 35 70 A 3 3 0 0 0 38 67 A 3 3 0 0 0 35 64 z M 83.363281 80.5 C 82.600781 80.5 81.850781 80.800391 81.300781 81.400391 C 80.100781 82.600391 80.100781 84.499609 81.300781 85.599609 L 83.800781 88.099609 C 83.200781 89.299609 82.900391 90.6 82.900391 92 C 82.900391 94.4 83.8 96.700391 85.5 98.400391 L 98.300781 111 C 100.10078 112.8 102.39922 113.69922 104.69922 113.69922 C 106.99922 113.69922 109.29961 112.79961 111.09961 111.09961 C 114.59961 107.59961 114.59961 101.90039 111.09961 98.400391 L 98.300781 85.599609 C 96.600781 83.899609 94.300391 83 91.900391 83 C 90.500391 83 89.2 83.300391 88 83.900391 L 85.5 81.400391 C 84.9 80.800391 84.125781 80.5 83.363281 80.5 z M 91.900391 88.900391 C 92.700391 88.900391 93.5 89.200781 94 89.800781 L 106.69922 102.5 C 107.89922 103.7 107.89922 105.59922 106.69922 106.69922 C 105.49922 107.89922 103.6 107.89922 102.5 106.69922 L 89.800781 94.099609 C 89.200781 93.499609 88.900391 92.700391 88.900391 91.900391 C 88.900391 91.100391 89.200781 90.300781 89.800781 89.800781 C 90.400781 89.200781 91.100391 88.900391 91.900391 88.900391 z"/>
             </svg>
         `;
     }
-    searchButton.style.background = 'rgba(0, 0, 0, 0)';
-    searchButton.style.display = 'inline-flex';
-    searchButton.style.alignItems = 'center';
-    searchButton.style.verticalAlign = 'middle';
-    searchButton.style.justifyContent = 'center';
-    searchButton.style.border = 'none';
-    searchButton.style.outline = 'none';
-    searchButton.style.boxShadow = 'none';
-    searchButton.style.padding = '0';
-    searchButton.style.height = navElementHeight + 'px';
+    style(searchButton, {
+        background: 'rgba(0, 0, 0, 0)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        verticalAlign: 'middle',
+        justifyContent: 'center',
+        border: 'none',
+        outline: 'none',
+        boxShadow: 'none',
+        padding: '0',
+        height: navElementHeight + 'px'
+    });
     searchButton.innerHTML = renderSVG(navElementHeight);
     searchButton.excited = false;
     searchButton.addEventListener('mouseover', () => {
@@ -124,7 +127,7 @@ async function  loadBlocklistContainerContent (container) {
 
     // -------- Add New Blocklist Utility --------
     const inputWrapper = create('div', 'blocklists-input-wrapper', containerBody);
-    inputWrapper.classList.add('row', 'justify-content-md-center');
+    inputWrapper.classList.add('row', 'justify-content-md-center', 'no-gutters');
     inputWrapper.style.marginBottom = '20px';
     inputWrapper.style.marginTop = '20px';
 
@@ -166,6 +169,7 @@ async function  loadBlocklistContainerContent (container) {
     const submitButton = create('button', '', submitCol);
     style(submitButton, { border: 0, backgroundColor: '#167adeff', color: '#fff', height: '100%' });
     submitButton.innerHTML = 'Add';
+    submitButton.classList.add('rounded-button');
 
     // Submit routine
     submitButton.addEventListener('click', async () => {
@@ -185,19 +189,6 @@ async function  loadBlocklistContainerContent (container) {
         await sleep(100); // delay to give the server some time to settle
         // configawait config('get', 'blocking.blocklists');
         await loadBlocklistContainerContent(container);
-        // let blocklistTable = document.getElementById('blocklist-table');
-        // const tbody = blockListTable.querySelector('tbody');
-
-
-        // const switchWrapper = create('div', `switch-wrapper-${url}`, matchedCell);
-        // switchWrapper.classList.add('form-check', 'form-switch');
-        // const toggler       = create('input', toggleId, switchWrapper);
-        
-        // for () {
-        //     const tbody = blockListTable.querySelector('tbody');
-        // }
-
-        console.log('repsonse', response);
 
         // Output the server response in input placeholder
         await sleep(100);
@@ -205,17 +196,13 @@ async function  loadBlocklistContainerContent (container) {
         _newBlocklistInput.value = '';
         const originalColor = _newBlocklistInput.style.color;
         if (response.err) {
-            console.log('TEST *****', _newBlocklistInput)
             _newBlocklistInput.placeholder = response.err.replace('Error: ', ''); // delete input in UI
             _newBlocklistInput.style.setProperty('--c', '#e91f4bff');
-            console.log('TEST 3')
         } else {
             _newBlocklistInput.placeholder = response.msg;
             _newBlocklistInput.style.setProperty('--c', '#0ee182ff');
         }
-        console.log('TEST 4')
         await sleep(5000); // little delay
-        console.log('TEST 5')
         _newBlocklistInput.style.color = originalColor;
         _newBlocklistInput.placeholder = 'blocklist URL ...';
 
@@ -366,6 +353,8 @@ async function loadBlocklistContainer () {
 async function loadStatsContainerContent (container) {
     
     let containerBody = container.body;
+    containerBody.classList.add('container');
+    containerBody.innerHTML = '';
 
     // Request dns stats from server
     const dns = await (await fetch('/stats', {
@@ -375,7 +364,71 @@ async function loadStatsContainerContent (container) {
     })).json();
     console.log('stats', dns);
 
-    const topQueryTable = createTableFromJSON(dns.top_queried_domains, containerBody.id);
+    // -------- Timeseries Chart --------
+    const queryChartRow = create('div', 'query-chart-row', containerBody);
+    queryChartRow.classList.add('row', 'no-gutters');
+    const queryChartCol = create('div', 'query-chart-col', queryChartRow);
+    queryChartCol.classList.add('col-12', 'justify-content-md-center');
+    const queryChartElement = create('canvas', 'query-timeseries-chart', queryChartCol);
+    queryChartRow.style.maxHeight = '30%';
+
+    const queryChart = new Chart(queryChartElement, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // -------- Top Queried Domains Table -------- 
+    // Create a top query table
+    const tableRow = create('div', 'top-query-table-row', containerBody);
+    tableRow.classList.add('row', 'no-gutters');
+    const tableCol = create('div', 'top-query-table-col', tableRow);
+    tableCol.classList.add('col-12', 'justify-content-md-center');
+    const heading = create('h3', 'dns-table-heading', tableCol);
+    style(heading, {width: '100%', color: '#ccc', textAlign: 'center', background: 'rgba(10,10,10,0.4)'});
+    heading.innerHTML = 'Top Queried Domains';
+    const topQueryTable = createTableFromJSON(dns.top_queried_domains, tableCol.id, false, 'hidden', true, true, true);
+    topQueryTable.style.color = 'white';
+    setRelativeColumnWidths(topQueryTable, [0.6, 0.2, 0.2])
+    style(tableCol, {color: 'white', width: '50%'})
+
+    // -------- DNS resolve utility (good for testing) --------
+    const dnsResolveRow = create('div', 'dns-resolve-row', containerBody);
+    dnsResolveRow.classList.add('row', 'no-gutters');
+    const dnsInputCol = create('div', 'dns-resolve-row', dnsResolveRow);
+    dnsInputCol.classList.add('col-4', 'justify-content-md-center');
+    const dnsInput = create('input', 'dns-input', dnsInputCol);
+    style(dnsInput, {width: '100%', height: '100%'});
+    dnsInput.placeholder = 'url to resolve ...';
+
+    const dnsButtonCol = create('div', 'dns-resolve-row', dnsResolveRow);
+    dnsButtonCol.classList.add('col-2', 'justify-content-md-center');
+    const dnsButton = create('button', 'dns-input', dnsButtonCol);
+    dnsButton.classList.add('rounded-button');
+    dnsButton.innerHTML = 'resolve';
+
+    const dnsLabelCol = create('div', 'dns-resolve-row', dnsResolveRow);
+    dnsLabelCol.classList.add('col-4');
+    const dnsLabel = create('label', 'dns-resolve-output', dnsLabelCol);
+    dnsLabel.style.color = 'white';
+
+    dnsButton.addEventListener('click', async (event) => {
+        const url      = dnsInput.value;
+        console.log('url', url)
+
+        // Make a dns request to resolve endpoint
+        const response = await fetch('/resolve?url='+url);
+        const data     = await response.text();
+        console.log('dns response:', data);
+
+        dnsLabel.innerHTML = data;
+    });
 
 }
 
@@ -388,6 +441,8 @@ async function loadStatsContainer () {
     await loadStatsContainerContent(container);
 
 }
+
+
 
 export async function dashPage (params) {
     

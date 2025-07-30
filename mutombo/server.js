@@ -37,7 +37,7 @@ const logPath       = path.join(__dirname, 'logs');
     // Statistics Aggregation
     var stats = {
         dns: {
-            top_queried_domains: {},
+            top_queried_domains: [],
             resolutions: {
                 total_events: 0,
                 by_domain: {}, // separated count by domain
@@ -303,6 +303,7 @@ const logPath       = path.join(__dirname, 'logs');
     app.get('/resolve', async (req, res) => {
 
         const url = req.query.url;
+        console.log('[resolve] Requested domain: ', url)
 
         // Validate input format (protect against XSS)
         if (!(url && urlPattern.test(url))) 
@@ -323,7 +324,7 @@ const logPath       = path.join(__dirname, 'logs');
         // returns a null IP i.e. 0.0.0.0
         const ip = await rdns.resolve(domain);
         if (ip !== '0.0.0.0')
-            collectRequestInfoForStats(domain, stats, 'request', req);
+            collectRequestInfoForStats(domain, stats, 'resolutions', req);
         
         // Send the IP which at this point should be defined.
         return res.send(ip);

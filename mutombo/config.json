@@ -9,8 +9,8 @@
           "id": "moving-container-navigation",
           "blur": 2,
           "position": [
-            896,
-            92
+            843,
+            22
           ],
           "size": [
             500,
@@ -22,8 +22,8 @@
           "id": "moving-container-blocklist",
           "blur": 2,
           "position": [
-            83,
-            88
+            842,
+            102
           ],
           "size": [
             800,
@@ -35,8 +35,8 @@
           "id": "moving-container-statistics",
           "blur": 2,
           "position": [
-            79,
-            610
+            6,
+            113
           ],
           "size": [
             800,
@@ -59,7 +59,7 @@
         "name": "the block list project - phishing list",
         "url": "https://blocklistproject.github.io/Lists/phishing.txt",
         "label": "security",
-        "date": "07/29/25 00:59",
+        "date": "07/29/25 03:51",
         "active": true
       }
     ]
