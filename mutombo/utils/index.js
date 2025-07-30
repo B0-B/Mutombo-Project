@@ -144,7 +144,7 @@ export function timestamp () {
 
 /**
  * A custom timestamp parser which is suitable for timestamp() function.
- * @returns {String} Timestamp in unix time in seconds.
+ * @returns {String} Timestamp in unix time in milliseconds.
  */
 export function parseTimestamp(str) {
   const [datePart, timePart] = str.split(' ');
@@ -152,7 +152,7 @@ export function parseTimestamp(str) {
   const [hours, minutes] = timePart.split(':').map(n => parseInt(n, 10));
   // Reconstruct full 4-digit year
   const fullYear = year >= 70 ? 1900 + year : 2000 + year;
-  return Math.floor((new Date(fullYear, month - 1, day, hours, minutes)).getTime()/1000);
+  return (new Date(fullYear, month - 1, day, hours, minutes)).getTime();
 }
 
 /**

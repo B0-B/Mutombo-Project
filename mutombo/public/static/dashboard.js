@@ -9,6 +9,7 @@ import { create,
          filterTableByColumn,
          setRelativeColumnWidths,
          style } from './container.js';
+import { aggregateTimeseriesArray, timesArray } from './timeseries.js';
 
 // ============ Navigation Container ============
 /**
@@ -371,29 +372,64 @@ async function loadStatsContainerContent (container) {
     queryChartCol.classList.add('col-12', 'justify-content-md-center');
     const queryChartElement = create('canvas', 'query-timeseries-chart', queryChartCol);
     queryChartRow.style.maxHeight = '30%';
+    
 
+    // Aggregate arrays of timeseries    
+    let times = timesArray(24, true);
+    console.log('times ***', times)
+    const resolutionsArray = await aggregateTimeseriesArray(dns.resolutions.timeseries, 24);
+    const blocksArray = await aggregateTimeseriesArray(dns.blocks.timeseries, 24);
     const queryChart = new Chart(queryChartElement, {
         type: 'bar',
         data: {
-            labels: [],
-            datasets: []
+            labels: times,
+            datasets: [{
+                label: 'Resolutions',
+                data: resolutionsArray,
+                borderWidth: 1
+            },
+            {
+                label: 'Blocks',
+                data: blocksArray,
+                borderWidth: 1
+            }
+        ]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    ticks: {
+                        display: false // 🚫 Hides all tick labels
+                    },
+                    // grid: {
+                    //     drawTicks: false // Optional: removes the small tick marks themselves
+                    // }
+                }
+            }
         }
     });
 
     // -------- Top Queried Domains Table -------- 
     // Create a top query table
+    const globalTableHeight = '250px'
     const tableRow = create('div', 'top-query-table-row', containerBody);
     tableRow.classList.add('row', 'no-gutters');
     const tableCol = create('div', 'top-query-table-col', tableRow);
     tableCol.classList.add('col-12', 'justify-content-md-center');
+    tableCol.style.height = 'auto'
+    style(tableCol, {height: globalTableHeight, position: 'relative', overflow: 'hidden'});
     const heading = create('h3', 'dns-table-heading', tableCol);
     style(heading, {width: '100%', color: '#ccc', textAlign: 'center', background: 'rgba(10,10,10,0.4)'});
     heading.innerHTML = 'Top Queried Domains';
-    const topQueryTable = createTableFromJSON(dns.top_queried_domains, tableCol.id, false, 'hidden', true, true, true);
+    const tableWrapper = create('div', 'top-query-table-wrapper', tableCol);
+    style(tableWrapper, {
+        height: '100%',
+        scrollbarWidth: 'none', 
+        overflowY: 'auto', 
+        msOverflowStyle: 'none'})
+    const topQueryTable = createTableFromJSON(dns.top_queried_domains, tableWrapper.id, false, 'hidden', true, true, true);
     topQueryTable.style.color = 'white';
     setRelativeColumnWidths(topQueryTable, [0.6, 0.2, 0.2])
     style(tableCol, {color: 'white', width: '50%'})
