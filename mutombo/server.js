@@ -23,8 +23,6 @@ const staticPath    = path.join(__dirname, 'public/static');
 const logPath       = path.join(__dirname, 'logs');
 
 
-
-
 (async () => {
     
     // Globals
@@ -38,6 +36,7 @@ const logPath       = path.join(__dirname, 'logs');
     var stats = {
         dns: {
             top_queried_domains: [],
+            top_clients: {},
             resolutions: {
                 total_events: 0,
                 by_domain: {}, // separated count by domain
@@ -129,7 +128,7 @@ const logPath       = path.join(__dirname, 'logs');
 
         // Login wall. 
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
-        console.log('request body', req.body)
+        console.log('Received request body:\n', req.body)
 
         // Serve the most recent state of the config object
         if (req.body.mode === 'get') {
@@ -225,11 +224,10 @@ const logPath       = path.join(__dirname, 'logs');
     // Config delivery endpoint.
     app.use(express.json());
     app.post('/conf', async (req, res) => {
+        
         // Login wall. 
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         
-        
-
         const delimiter = '.';
         if (!req.body.mode)
             return res.json({msg: `/conf-endpoint: No "mode" parameter specified.`, data: {}});
@@ -293,8 +291,7 @@ const logPath       = path.join(__dirname, 'logs');
     app.post('/upload', upload.single('image'), (req, res) => {
         // Login wall. 
         if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
-        
-        console.log('Image received:', req.file.originalname);
+        console.log('/upload - Image received:', req.file.originalname);
         res.json({ msg: 'Image uploaded successfully', status: true });
     });
 

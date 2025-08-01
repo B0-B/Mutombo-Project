@@ -190,6 +190,7 @@ export function unixTimeFromLog (log) {
  */
 export async function collectRequestInfoForStats (domain, stats, type, req) {
 
+  console.log('collect call')
   // Extract requestor and user agent information
   var agent, client;
   if (req) {
@@ -200,20 +201,32 @@ export async function collectRequestInfoForStats (domain, stats, type, req) {
     client = 'n/a'
   }
 
+  // Raise client counter
+  if (!(client in stats.dns.top_clients)) {
+    stats.dns.top_clients[client] = 1
+  } else {
+    stats.dns.top_clients[client]++
+  }
+
   // Create a timeseries entry
   const timeString = timestamp();
   const _timestamp = parseTimestamp(timeString);
+
+  // Increment the total requests count, use the current count as identifier
+  const entryId = stats.dns[type].total_events;
+  stats.dns[type].total_events = stats.dns[type].total_events + 1;
 
   // *** TIMESERIES ENTRY FORMAT ***
   const entry = {
     domain,   // Requested domain
     client,   // The requestor IP
     agent,    // Requestor user agent
-    time: timeString
+    time: timeString,
+    timestamp: _timestamp
   }
 
   // Aggregate the entry
-  stats.dns[type].timeseries[_timestamp] = entry;
+  stats.dns[type].timeseries[entryId] = entry;
 
   // Add the count by domain
   if (domain in stats.dns[type].by_domain) {
@@ -222,8 +235,7 @@ export async function collectRequestInfoForStats (domain, stats, type, req) {
     stats.dns[type].by_domain[domain] = 1;
   }
   
-  // Increment the total requests count
-  stats.dns[type].total_events = stats.dns[type].total_events + 1;
+  
 
 }
 
@@ -248,7 +260,7 @@ export async function analyzeStats (stats, updateTimeMs) {
 
 
       // Cutoff top n queried domains
-      const top_n = 50;
+      const top_n = 100;
       const topDomains = Object.entries(stats.dns.resolutions.by_domain).splice(0, top_n);
       let topList = [];
       for (let d of topDomains) {

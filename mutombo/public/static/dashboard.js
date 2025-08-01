@@ -376,9 +376,9 @@ async function loadStatsContainerContent (container) {
 
     // Aggregate arrays of timeseries    
     let times = timesArray(24, true);
-    console.log('times ***', times)
     const resolutionsArray = await aggregateTimeseriesArray(dns.resolutions.timeseries, 24);
     const blocksArray = await aggregateTimeseriesArray(dns.blocks.timeseries, 24);
+    // Construct Bar Chart
     const queryChart = new Chart(queryChartElement, {
         type: 'bar',
         data: {
@@ -402,10 +402,12 @@ async function loadStatsContainerContent (container) {
                 x: {
                     ticks: {
                         display: false // 🚫 Hides all tick labels
-                    },
-                    // grid: {
-                    //     drawTicks: false // Optional: removes the small tick marks themselves
-                    // }
+                    }
+                },
+                y: {
+                    ticks: {
+                        display: false // 🚫 Hides all tick labels
+                    }
                 }
             }
         }
@@ -454,15 +456,12 @@ async function loadStatsContainerContent (container) {
     const dnsLabel = create('label', 'dns-resolve-output', dnsLabelCol);
     dnsLabel.style.color = 'white';
 
-    dnsButton.addEventListener('click', async (event) => {
+    dnsButton.addEventListener('click', async () => {
         const url      = dnsInput.value;
-        console.log('url', url)
-
         // Make a dns request to resolve endpoint
         const response = await fetch('/resolve?url='+url);
         const data     = await response.text();
-        console.log('dns response:', data);
-
+        // Display url in label
         dnsLabel.innerHTML = data;
     });
 

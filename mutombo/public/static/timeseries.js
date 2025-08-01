@@ -14,10 +14,11 @@ export async function aggregateTimeseriesArray (timeseries, totalHours=24) {
     
     // Reverse the timestamps in timeseries this will enhance runtime as we exploit the chronological 
     // nature of the timeseries and cutoff all timestamps with delta larger than totalHours.
-    const reversedTimestamps = Object.keys(timeseries).reverse();
+    const reverseTimeseriesEntries = Object.values(timeseries).reverse();
 
-    for (let timestamp of reversedTimestamps) {
-        const deltaHours = Math.floor((currentTimestamp - Number(timestamp)) / 3.6e+6);
+    for (let entry of reverseTimeseriesEntries) {
+        let _timestamp = Number(entry.timestamp);
+        const deltaHours = Math.floor((currentTimestamp - _timestamp) / 3.6e+6);
         if (deltaHours > totalHours) break;
         timeseriesArray[totalHours-deltaHours-1]++ 
     }
