@@ -12,11 +12,13 @@ Works like a DNS but returns a domain name for a provided IP, i. e. reverses the
 
 # Dev Status
 
+
 - [ ] Make moving containers collapsible
 - [ ] Add menu bar for style control to moving containers
-- [ ] Add statistics container in dashboard 
-- [ ] Finish blocklist container in dashboard
-- [ ] Add labels like "ad","phishing" etc. to blocklist objects - this will allow to categorize how a request is blocked by label.
+- [x] Add chart for request/blocking statistics to stats container
+- [x] Add statistics container in dashboard 
+- [x] Finish blocklist container in dashboard
+- [x] Add labels like "ad","phishing" etc. to blocklist objects - this will allow to categorize how a request is blocked by label.
 - [x] Basic API and config synchronization.
 - [x] Basic Container Mechanics in UI.
 

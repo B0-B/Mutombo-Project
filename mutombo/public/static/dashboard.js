@@ -10,6 +10,8 @@ import { create,
          setRelativeColumnWidths,
          style } from './container.js';
 import { aggregateTimeseriesArray, timesArray } from './timeseries.js';
+// Register plugin BEFORE instantiating the chart
+// Chart.register(ChartDataLabels);
 
 // ============ Navigation Container ============
 /**
@@ -413,6 +415,7 @@ async function loadStatsContainerContent (container) {
         }
     });
 
+
     // -------- Top Queried Domains Table -------- 
     // Create a top query table
     const globalTableHeight = '250px'
@@ -421,20 +424,92 @@ async function loadStatsContainerContent (container) {
     const tableCol = create('div', 'top-query-table-col', tableRow);
     tableCol.classList.add('col-12', 'justify-content-md-center');
     tableCol.style.height = 'auto'
-    style(tableCol, {height: globalTableHeight, position: 'relative', overflow: 'hidden'});
+    style(tableCol, {color: 'white', width: '50%', position: 'relative', overflow: 'hidden'});
     const heading = create('h3', 'dns-table-heading', tableCol);
-    style(heading, {width: '100%', color: '#ccc', textAlign: 'center', background: 'rgba(10,10,10,0.4)'});
+    heading.classList.add('stats-container-headings');
     heading.innerHTML = 'Top Queried Domains';
     const tableWrapper = create('div', 'top-query-table-wrapper', tableCol);
     style(tableWrapper, {
-        height: '100%',
+        height: '200px',
         scrollbarWidth: 'none', 
         overflowY: 'auto', 
         msOverflowStyle: 'none'})
-    const topQueryTable = createTableFromJSON(dns.top_queried_domains, tableWrapper.id, false, 'hidden', true, true, true);
-    topQueryTable.style.color = 'white';
+    const topQueryTable = createTableFromJSON(
+            dns.top_queried_domains, 
+            tableWrapper.id, 
+            false, 
+            'hidden', 
+            true,
+            false, 
+            true);
+    topQueryTable.classList.add('table-hover');
+    style(topQueryTable, {height: globalTableHeight, color: 'white', backgroundColor: 'rgba(20,20,20,0.6)'})
     setRelativeColumnWidths(topQueryTable, [0.6, 0.2, 0.2])
-    style(tableCol, {color: 'white', width: '50%'})
+    
+
+    // -------- Clients Share Chart --------
+    const clientPieChartCol = create('div', 'client-pie-chart-col', tableRow);
+    clientPieChartCol.classList.add('col-12', 'justify-content-md-center');
+    clientPieChartCol.style.height  = 'auto';
+    style(clientPieChartCol, {color: 'white', width: '50%'});
+    const clientHeading             = create('h3', 'client-pie-chart-heading', clientPieChartCol);
+    clientHeading.classList.add('stats-container-headings');
+    style(clientHeading, {width: '100%', color: '#ccc', textAlign: 'center', background: 'rgba(10,10,10,0.4)'});
+    clientHeading.innerHTML         = 'Request By Clients';
+    const clientPieChartWrapper     = create('div', 'client-pie-chart-wrapper', clientPieChartCol);
+    style(clientPieChartWrapper, {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+        height: '220px',
+        scrollbarWidth: 'none', 
+        overflowY: 'auto', 
+        msOverflowStyle: 'none'});
+    const clientPieChartCanvas = create('canvas', 'client-pie-chart', clientPieChartWrapper);
+    style(clientPieChartCanvas, {height: '100%'})
+
+    // // Prepare data for chart
+    const clientNames = Object.keys(dns.top_clients);
+    const clientQueries = Object.values(dns.top_clients);
+    const total = clientQueries.reduce((acc, curr) => acc + curr, 0);
+    let outputs = [];
+    for (let queries of clientQueries) {
+        const share = Math.floor( 1000 * queries / total ) / 10;
+        outputs.push(`${queries} (${share}%)`);
+    }
+    
+    const clientPieChart = new Chart(clientPieChartCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: clientNames,
+            datasets: [
+                {
+                    label: 'Queries',
+                    data: clientQueries,
+                    borderWidth: 1
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                datalabels: {
+                    color: '#fff',
+                    formatter: (queries, context) => {
+                        // const label = context.chart.data.labels[context.dataIndex];
+                        return `${context.chart.data.labels[context.dataIndex]} (${Math.floor( 1000 * queries / total ) / 10}%)`;
+                    },
+                    font: {
+                        weight: 'bold',
+                        size: 12
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels] // ✅ Plugin applied only to this chart
+    });
 
     // -------- DNS resolve utility (good for testing) --------
     const dnsResolveRow = create('div', 'dns-resolve-row', containerBody);

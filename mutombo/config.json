@@ -22,8 +22,8 @@
           "id": "moving-container-blocklist",
           "blur": 2,
           "position": [
-            69,
-            605
+            35,
+            533
           ],
           "size": [
             800,
@@ -35,8 +35,8 @@
           "id": "moving-container-statistics",
           "blur": 2,
           "position": [
-            54,
-            103
+            35,
+            22
           ],
           "size": [
             800,

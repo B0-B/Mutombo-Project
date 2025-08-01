@@ -214,7 +214,7 @@ export async function collectRequestInfoForStats (domain, stats, type, req) {
 
   // Increment the total requests count, use the current count as identifier
   const entryId = stats.dns[type].total_events;
-  stats.dns[type].total_events = stats.dns[type].total_events + 1;
+  stats.dns[type].total_events++;
 
   // *** TIMESERIES ENTRY FORMAT ***
   const entry = {
