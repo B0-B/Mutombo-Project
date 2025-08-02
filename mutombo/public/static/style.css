@@ -85,7 +85,12 @@ html, body {
 }
 
 .rounded-button {
-  -webkit-border-radius: 10px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
+}
+
+.rounded-input {
+  -webkit-border-radius: 8px;
   border-radius: 8px;
 }
 
@@ -118,5 +123,5 @@ html, body {
   vertical-align: middle;
   text-align: center !important;
   background: rgba(10,10,10,0.4);
-  
+  padding: 5px;
 }

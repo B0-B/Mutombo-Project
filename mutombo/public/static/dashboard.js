@@ -20,14 +20,15 @@ import { aggregateTimeseriesArray, timesArray } from './timeseries.js';
 async function loadNavigation () {
 
     // Parameters
-    const navWidth  = 500;
+    const navWidth  = 300;
     const navHeight = 60;
     const navElementHeight = Math.floor(0.6 * navHeight);
     const navFontSize = Math.floor(0.618**2 * navHeight);
     const hoverScaleFactor = 1.05;
 
-    // Create navigation and auto-place it
+    // Create a search navigation and auto-place it
     let navi = new movingContainer('navigation', [ navWidth, navHeight ]);
+    navi.header.remove();
     autoPlaceContainer('navigation');
 
     // Extract body element
@@ -37,14 +38,17 @@ async function loadNavigation () {
     // ==== Navigation Search Bar ====
     // ---- HTML Structure ----
     let searchRow = create('div', 'nav-search-bar-container', containerBody);
+    style(searchRow, {height: '40px', marginTop: '10px'});
     searchRow.classList.add('row', 'no-gutters');
     let searchInputCol  = create('div', 'nav-search-input-col', searchRow);
-    searchInputCol.classList.add('col-5');
+    searchInputCol.classList.add('col-9');
     let searchInput     = create('input', 'nav-search-bar-input', searchInputCol);
     searchInput.style.height = '100%';
     searchInput.placeholder = 'web search ...';
+    searchInput.classList.add('rounded-input');
+    searchInput.style.width = '100%'
     let searchButtonCol = create('div', 'nav-search-button-col', searchRow);
-    searchButtonCol.classList.add('col-1', 'p-0');
+    searchButtonCol.classList.add('col-3', 'p-0');
     let searchButton    = create('button', 'nav-search-bar-button', searchButtonCol);
     searchButton.classList.add('rounded-button');
 
