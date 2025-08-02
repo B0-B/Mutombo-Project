@@ -382,7 +382,7 @@ async function loadStatsContainerContent (container) {
     const totalResolutions  = dns.resolutions.total_events;
     const totalBlocks       = dns.blocks.total_events;
     const totalQueries      = totalResolutions + totalBlocks;
-    const blockShare        = Math.floor(1000 * totalBlocks / totalQueries) / 10;
+    const blockShare        = Math.floor(1000 * totalBlocks / totalQueries) / 10 || 0;
     
     // Add the total query counter content
     const totalQueryContent = create('div', 'total-query-content', totalQueryCol);
@@ -486,7 +486,7 @@ async function loadStatsContainerContent (container) {
             false, 
             true);
     topQueryTable.classList.add('table-hover');
-    style(topQueryTable, {height: globalTableHeight, color: 'white', backgroundColor: 'rgba(20,20,20,0.6)'})
+    style(topQueryTable, {maxHeight: globalTableHeight, color: 'white', backgroundColor: 'rgba(20,20,20,0.6)'})
     setRelativeColumnWidths(topQueryTable, [0.6, 0.2, 0.2])
     
 
