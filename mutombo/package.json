@@ -10,7 +10,8 @@
   "imports": {
     "#utils": "./utils/index.js",
     "#block": "./block/index.js",
-    "#rdns": "./rdns/index.js"
+    "#rdns": "./rdns/index.js",
+    "#whois": "./whois/index.js"
   },
   "author": "",
   "license": "ISC",

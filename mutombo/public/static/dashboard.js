@@ -367,6 +367,45 @@ async function loadStatsContainerContent (container) {
     })).json();
     console.log('stats', dns);
 
+    // -------- Total Header --------
+    const totalsRow       = create('div', 'totals-row', containerBody);
+    totalsRow.classList.add('row', 'no-gutters');
+    const totalQueryCol   = create('div', 'totals-query-col', totalsRow);
+    totalQueryCol.classList.add('col-6', 'justify-content-md-center');
+    const totalBlockCol   = create('div', 'totals-block-col', totalsRow);
+    totalBlockCol.classList.add('col-6', 'justify-content-md-center');
+
+    const totalResolutions  = dns.resolutions.total_events;
+    const totalBlocks       = dns.blocks.total_events;
+    const totalQueries      = totalResolutions + totalBlocks;
+    const blockShare        = Math.floor(1000 * totalBlocks / totalQueries) / 10;
+    
+    // Add the total query counter content
+    const totalQueryContent = create('div', 'total-query-content', totalQueryCol);
+    const counterInfo       = create('h4', 'total-query-info-label', totalQueryContent);
+    style(counterInfo, {color: '#228dcfff', fontWeight: 'bold'});
+    counterInfo.innerHTML   = 'Total DNS Queries'
+    const counterLabel      = create('h1', 'total-query-counter-label', totalQueryContent);
+    style(counterLabel, {   color: '#228dcfff', 
+                            fontWeight: 'bold',
+                            fontSize: '4rem', 
+                            width: '100%', 
+                            textAlign:'center'});
+    counterLabel.innerHTML  = totalQueries;
+
+    // Add the blocks counter content
+    const totalBlockContent = create('div', 'total-block-content', totalBlockCol);
+    const blockInfo       = create('h4', 'total-block-info-label', totalBlockContent);
+    style(blockInfo, {color: '#dc3f51ff', fontWeight: 'bold'});
+    blockInfo.innerHTML   = `Blocked (${blockShare}%)`
+    const blockLabel      = create('h1', 'total-block-counter-label', totalBlockContent);
+    style(blockLabel, {   color: '#dc3f51ff', 
+                            fontWeight: 'bold',
+                            fontSize: '4rem', 
+                            width: '100%', 
+                            textAlign:'center'});
+    blockLabel.innerHTML  = totalBlocks;
+
     // -------- Timeseries Chart --------
     const queryChartRow = create('div', 'query-chart-row', containerBody);
     queryChartRow.classList.add('row', 'no-gutters');
@@ -478,7 +517,18 @@ async function loadStatsContainerContent (container) {
         const share = Math.floor( 1000 * queries / total ) / 10;
         outputs.push(`${queries} (${share}%)`);
     }
-    
+    const pieChartColors    = [
+        '#2A86BF',
+        '#2a9fbfff',
+        '#2ababfff',
+        '#2abf7cff',
+        '#2abf48ff',
+        '#4fbf2aff',
+        '#6dbf2aff',
+        '#499835ff',
+        '#359856ff',
+        '#4266d3ff'
+    ];  
     const clientPieChart = new Chart(clientPieChartCanvas, {
         type: 'doughnut',
         data: {
@@ -487,7 +537,9 @@ async function loadStatsContainerContent (container) {
                 {
                     label: 'Queries',
                     data: clientQueries,
-                    borderWidth: 1
+                    borderWidth: 1,
+                    backgroundColor: pieChartColors,
+                    hoverBackgroundColor: pieChartColors
                 },
             ]
         },
@@ -505,6 +557,9 @@ async function loadStatsContainerContent (container) {
                         weight: 'bold',
                         size: 12
                     }
+                },
+                legend: {
+                    display: false // 👈 This removes the legend!
                 }
             }
         },
@@ -545,7 +600,7 @@ async function loadStatsContainerContent (container) {
 async function loadStatsContainer () {
     
     // Initialize the container frame
-    let container = new movingContainer('statistics', [ 800, 500 ], "", 'DNS Statistics');
+    let container = new movingContainer('statistics', [ 800, 650 ], "", 'DNS Statistics');
     autoPlaceContainer('statistics');
 
     await loadStatsContainerContent(container);

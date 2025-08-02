@@ -100,6 +100,9 @@ html, body {
   user-select: none;
   justify-content: center; /* horizontal */
   align-items: center;     /* vertical */
+  font-size: 4rem;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .moving-container-header > h1 {
@@ -114,5 +117,6 @@ html, body {
   line-height: 2rem;
   vertical-align: middle;
   text-align: center !important;
-  background: rgba(10,10,10,0.4)
+  background: rgba(10,10,10,0.4);
+  
 }
