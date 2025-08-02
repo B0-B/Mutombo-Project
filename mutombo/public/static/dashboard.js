@@ -470,13 +470,14 @@ async function loadStatsContainerContent (container) {
     style(tableCol, {color: 'white', width: '50%', position: 'relative', overflow: 'hidden'});
     const heading = create('h3', 'dns-table-heading', tableCol);
     heading.classList.add('stats-container-headings');
+    heading.style.margin = 0;
     heading.innerHTML = 'Top Queried Domains';
     const tableWrapper = create('div', 'top-query-table-wrapper', tableCol);
     style(tableWrapper, {
         height: '200px',
         scrollbarWidth: 'none', 
         overflowY: 'auto', 
-        msOverflowStyle: 'none'})
+        msOverflowStyle: 'none'});
     const topQueryTable = createTableFromJSON(
             dns.top_queried_domains, 
             tableWrapper.id, 
@@ -487,11 +488,41 @@ async function loadStatsContainerContent (container) {
             true);
     topQueryTable.classList.add('table-hover');
     style(topQueryTable, {maxHeight: globalTableHeight, color: 'white', backgroundColor: 'rgba(20,20,20,0.6)'})
-    setRelativeColumnWidths(topQueryTable, [0.6, 0.2, 0.2])
-    
+    setRelativeColumnWidths(topQueryTable, [0.6, 0.2, 0.2]);
+
+
+    // -------- Top Blocked Domains Table --------
+    const blockTableCol = create('div', 'top-block-table-col', tableRow);
+    blockTableCol.classList.add('col-12', 'justify-content-md-center');
+    blockTableCol.style.height = 'auto';
+    style(blockTableCol, {color: 'white', width: '50%', position: 'relative', overflow: 'hidden'});
+    const bHeading = create('h3', 'block-table-heading', blockTableCol);
+    bHeading.classList.add('stats-container-headings');
+    bHeading.style.margin = 0;
+    bHeading.innerHTML = 'Top Blocked Domains';
+    const blockTableWrapper = create('div', 'top-block-table-wrapper', blockTableCol);
+    style(blockTableWrapper, {
+        height: '200px',
+        scrollbarWidth: 'none', 
+        overflowY: 'auto', 
+        msOverflowStyle: 'none'});
+    const topBlockTable = createTableFromJSON(
+            dns.top_blocked_domains, 
+            blockTableWrapper.id, 
+            false, 
+            'hidden', 
+            true,
+            false, 
+            true);
+    topBlockTable.classList.add('table-hover');
+    style(topBlockTable, {maxHeight: globalTableHeight, backgroundColor: 'rgba(20,20,20,0.6)'})
+    setRelativeColumnWidths(topBlockTable, [0.6, 0.2, 0.2]);
+
 
     // -------- Clients Share Chart --------
-    const clientPieChartCol = create('div', 'client-pie-chart-col', tableRow);
+    const chartRow = create('div', 'chart-row', containerBody);
+    chartRow.classList.add('row', 'no-gutters');
+    const clientPieChartCol = create('div', 'client-pie-chart-col', chartRow);
     clientPieChartCol.classList.add('col-12', 'justify-content-md-center');
     clientPieChartCol.style.height  = 'auto';
     style(clientPieChartCol, {color: 'white', width: '50%'});
@@ -510,7 +541,7 @@ async function loadStatsContainerContent (container) {
         overflowY: 'auto', 
         msOverflowStyle: 'none'});
     const clientPieChartCanvas = create('canvas', 'client-pie-chart', clientPieChartWrapper);
-    style(clientPieChartCanvas, {height: '100%'})
+    style(clientPieChartCanvas, {height: '100%'});
 
     // // Prepare data for chart
     const clientNames = Object.keys(dns.top_clients);
@@ -604,7 +635,7 @@ async function loadStatsContainerContent (container) {
 async function loadStatsContainer () {
     
     // Initialize the container frame
-    let container = new movingContainer('statistics', [ 800, 650 ], "", 'DNS Statistics');
+    let container = new movingContainer('statistics', [ 800, 900 ], "", 'DNS Statistics');
     autoPlaceContainer('statistics');
 
     await loadStatsContainerContent(container);

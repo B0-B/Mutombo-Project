@@ -36,6 +36,7 @@ const logPath       = path.join(__dirname, 'logs');
     var stats = {
         dns: {
             top_queried_domains: [],
+            top_blocked_domains: [],
             top_clients: {},
             resolutions: {
                 total_events: 0,

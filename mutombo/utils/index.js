@@ -259,7 +259,7 @@ export async function analyzeStats (stats, updateTimeMs) {
       }
 
 
-      // Cutoff top n queried domains
+      // Cutoff top n queried domains and sort them
       const top_n = 100;
       const topDomains = Object.entries(stats.dns.resolutions.by_domain).splice(0, top_n);
       let topList = [];
@@ -270,11 +270,25 @@ export async function analyzeStats (stats, updateTimeMs) {
         if (stats.dns.resolutions.total_events != 0) { // avoid 0 division
           share    = Math.floor(1000 * requests / stats.dns.resolutions.total_events) / 10 + '%';
         }
-        topList.push({domain: domain, queries: requests, share: share}); 
+        topList.push({domain: domain, queries: requests, share: share});
+      }
+
+      // Gathers top blocked domains in a list
+      let blockList = [];
+      const topBlockedDomains = Object.entries(stats.dns.blocks.by_domain).splice(0, top_n);
+      for (let b of topBlockedDomains) {
+        const domain = b[0];
+        const blocks = stats.dns.blocks.by_domain[domain];
+        var share = 0;
+        if (stats.dns.blocks.total_events != 0) { // avoid 0 division
+          share    = Math.floor(1000 * blocks / stats.dns.blocks.total_events) / 10 + '%';
+        }
+        blockList.push({domain: domain, blocks: blocks, share: share});
       }
 
       // Override top queried field in stats object
       stats.dns.top_queried_domains = topList;
+      stats.dns.top_blocked_domains = blockList;
       
 
     } catch (error) {
