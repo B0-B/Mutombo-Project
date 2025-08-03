@@ -34,6 +34,7 @@ const logPath       = path.join(__dirname, 'logs');
 
     // Authentication
     config.authenticated        = false;
+    await saveConfig(config);
     // var lastActivity         = 0;
 
     // Caching Globals
@@ -290,6 +291,67 @@ const logPath       = path.join(__dirname, 'logs');
             saveConfig(config);
         }
         
+    });
+
+    // Logs endpoint.
+    app.post('/logs', async (req, res) => {
+        
+        // Login wall. 
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        
+        try {
+
+            // Limit the output in any case
+            const top_n = 100;
+
+            // Load logs from log file
+            const logFilePath  = path.join(logPath, 'rdns.log'); 
+            let   logList      = (await fs.readFile(logFilePath, 'utf8')).split('\n').reverse();
+            let   selectedLogs = [];
+
+            // Check if a search string was provided
+            if (req.body.searchInput) {
+                // Curl through the logs using provided search input
+                const searchStringLower = req.body.searchInput.toLowerCase();
+                for (let i = 0; i < logList.length; i++) {
+                    // Stop after top_n results were aggregated
+                    if (selectedLogs.length >= top_n) break;
+                    // Probe each line for a match
+                    const logLine = logList[i];
+                    if (logLine && logLine.toLowerCase().includes(searchStringLower)) {
+                        // Split the log line into timestamp and log message
+                        const time = logLine.split('\t')[0];
+                        const log  = logLine.split('\t')[1];
+                        // Append json-ized log
+                        selectedLogs.push({time, log})
+                    }
+                }
+            }
+
+            // Otherwise proceed by returning the top n standard logs
+            else {
+                // Slice logList if it becomes too long
+                if (logList.length > top_n) {
+                    logList = logList.slice(-top_n);
+                }
+                // Convert to json
+                for (let logLine of logList) {
+                    if (!logLine) continue; 
+                    const time = logLine.split('\t')[0];
+                    const log  = logLine.split('\t')[1];
+                    selectedLogs.push({time, log})
+                }
+            }
+
+            return res.send({logs: selectedLogs})
+
+        } catch (error) {
+
+            console.error('/logs -', error);
+            return res.status(502).send({ error: "Cannot serve logs at the moment." });
+        
+        }
+
     });
 
     // Download endpoint.

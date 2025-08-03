@@ -12,9 +12,12 @@ Works like a DNS but returns a domain name for a provided IP, i. e. reverses the
 
 # Dev Status
 
-
+- [ ] Custom moving container style, need to persist info on opacity, background color etc. and make it resizable.
+- [ ] Create a little clock widget
+- [ ] Add the corr. blocklist info (which blocklist filter caused the blocking?) into rdns log, for later sourcing
 - [ ] Make moving containers collapsible
 - [ ] Add menu bar for style control to moving containers
+- [x] Add total counters to DNS stats container
 - [x] Add chart for request/blocking statistics to stats container
 - [x] Add statistics container in dashboard 
 - [x] Finish blocklist container in dashboard

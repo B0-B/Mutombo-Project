@@ -523,9 +523,9 @@ async function loadStatsContainerContent (container) {
 
 
     // -------- Clients Share Chart --------
-    const chartRow = create('div', 'chart-row', containerBody);
-    chartRow.classList.add('row', 'no-gutters');
-    const clientPieChartCol = create('div', 'client-pie-chart-col', chartRow);
+    const secondRow                 = create('div', 'second-row', containerBody);
+    secondRow.classList.add('row', 'no-gutters');
+    const clientPieChartCol         = create('div', 'client-pie-chart-col', secondRow);
     clientPieChartCol.classList.add('col-12', 'justify-content-md-center');
     clientPieChartCol.style.height  = 'auto';
     style(clientPieChartCol, {color: 'white', width: '50%'});
@@ -546,7 +546,7 @@ async function loadStatsContainerContent (container) {
     const clientPieChartCanvas = create('canvas', 'client-pie-chart', clientPieChartWrapper);
     style(clientPieChartCanvas, {height: '100%'});
 
-    // // Prepare data for chart
+    // Prepare data for chart
     const clientNames = Object.keys(dns.top_clients);
     const clientQueries = Object.values(dns.top_clients);
     const total = clientQueries.reduce((acc, curr) => acc + curr, 0);
@@ -603,6 +603,78 @@ async function loadStatsContainerContent (container) {
         },
         plugins: [ChartDataLabels] // ✅ Plugin applied only to this chart
     });
+
+    // -------- Log search utility --------
+    const logTableCol            = create('div', 'log-table-col', secondRow);
+    logTableCol.classList.add('col-12', 'justify-content-md-center');
+    logTableCol.style.height     = 'auto';
+    style(logTableCol, {color: 'white', width: '50%'});
+    const logHeading             = create('h3', 'log-section-heading', logTableCol);
+    logHeading.classList.add('stats-container-headings');
+    style(logHeading, {width: '100%', color: '#ccc', textAlign: 'center', background: 'rgba(10,10,10,0.4)'});
+    logHeading.innerHTML      = 'Source Logs';
+
+    // Build a wrapper container for structuring
+    const logWrapper = create('div', 'log-section-wrapper', logTableCol);
+    logWrapper.classList.add('container', 'p-0');
+
+    // Add a search utility row
+    const searchUtilityRow = create('div', 'log-search-row', logWrapper);
+    searchUtilityRow.classList.add('row', 'no-gutters');
+    const searchInputCol   = create('div', 'log-search-input-col', searchUtilityRow);
+    searchInputCol.classList.add('col-9');
+    const searchInput      = create('input', 'log-search-input', searchInputCol);
+    style(searchInput, {width: '100%'});
+    searchInput.placeholder = 'source logs ...';
+    searchInput.classList.add('bg-dark-medium');
+    const searchSubmitCol  = create('div', 'search-submit-col', searchUtilityRow);
+    searchSubmitCol.classList.add('col-3');
+    const logSubmitButton  = create('button', 'log-search-submit-button', searchSubmitCol);
+    logSubmitButton.innerHTML = 'search';
+    style(logSubmitButton, {height: '100%', borderWidth: 0, padding: 0, width: '100%'});
+    
+    // Prepare a table row where to place the table later
+    const logTableRow = create('div', 'log-section-log-table-row', logWrapper);
+    logTableRow.classList.add('row', 'no-gutters');
+    const logTableWrapper     = create('div', 'log-section-log-table-wrapper', logTableRow);
+    style(logTableWrapper, {
+        height: '220px', 
+        width: '100%',
+        scrollbarWidth: 'none', 
+        overflowY: 'auto', 
+        msOverflowStyle: 'none'});
+
+    // Add submit routine
+    logSubmitButton.addEventListener('click', async () => {
+        // Prepare data for logs table
+        const data = await (await fetch('/logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ searchInput: searchInput.value })
+        })).json();
+        // Create and inject table
+        logTableWrapper.innerHTML = '';
+        await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
+    });
+    // Execute an empty search
+    logSubmitButton.click()
+
+
+    searchInput.addEventListener('input', async () => {
+        if (searchInput.value && searchInput.value.length >= 3 || searchInput.value.length == 0) {
+            // Prepare data for logs table
+            const data = await (await fetch('/logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ searchInput: searchInput.value })
+            })).json();
+            // Create and inject table
+            logTableWrapper.innerHTML = '';
+            await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
+        }
+    });
+
+
 
     // -------- DNS resolve utility (good for testing) --------
     const dnsResolveRow = create('div', 'dns-resolve-row', containerBody);
@@ -759,6 +831,7 @@ async function loadClassicClock (container, clockSizeInPx) {
         const h = d.getHours();
         const m = d.getMinutes();
         const s = d.getSeconds();
+        const ms = d.getMilliseconds();
 
         // Create hour handle
         const hourScale = 0.6;
@@ -779,6 +852,25 @@ async function loadClassicClock (container, clockSizeInPx) {
         ctx.moveTo(...center);
         ctx.lineTo(...rMin);
         ctx.stroke();
+
+        // Create second handle
+        const secScale  = 0.8;
+        ctx.lineWidth   = 2;
+        ctx.strokeStyle = '#ce1212ff';
+        const secAngle  = (s+ms/1000)/60 * 2 * Math.PI - Math.PI/2; 
+        const rSec      = [center[0] + secScale * R * Math.cos(secAngle), center[1] + secScale * R * Math.sin(secAngle)];
+        ctx.beginPath();
+        ctx.moveTo(...center);
+        ctx.lineTo(...rSec);
+        ctx.stroke();
+        ctx.strokeStyle = 'white';
+        const dialColor = '#891b1bff';
+        ctx.beginPath();
+        ctx.arc(center[0], center[1], 4, 0, 2 * Math.PI);
+        ctx.fillStyle = dialColor;
+        ctx.fill();
+        ctx.fillStyle = 'white';
+
     } 
 
     async function ticTac () {
@@ -789,7 +881,7 @@ async function loadClassicClock (container, clockSizeInPx) {
             } catch (error) {
                 console.error('[clock widget]', error)
             } finally {
-                await sleep(200);
+                await sleep(20);
             }
         }
     }
