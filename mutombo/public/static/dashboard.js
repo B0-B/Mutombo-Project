@@ -10,6 +10,8 @@ import { create,
          setRelativeColumnWidths,
          style } from './container.js';
 import { aggregateTimeseriesArray, timesArray } from './timeseries.js';
+import { sessionTimeoutLoop } from './auth.js';
+
 // Register plugin BEFORE instantiating the chart
 // Chart.register(ChartDataLabels);
 
@@ -115,6 +117,7 @@ async function hashURL (url) {
 
 // ============ Blocklist Container ============
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * Loads the content to previously constructed container.
  * @param {movingContainer} container movingContainer instance
@@ -814,4 +817,7 @@ export async function dashPage (params) {
     loadBlocklistContainer();
     loadStatsContainer();
     loadClockContainer();
+
+    // Run a session timeout (on inactivity the server will remove the authentication status)
+    sessionTimeoutLoop(5);
 }

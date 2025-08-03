@@ -43,6 +43,32 @@ export async function authenticate (payload) {
 }
 
 
+/**
+ * Tries to authenticate the payload at auth endpoint. Returns a boolean based on success.
+ * @param {number} delayInMs Loop delay in seconds.
+ * @returns {Promise<void>}
+ */
+export async function sessionTimeoutLoop (delayInS) {
+    while (true) {
+        try {
+            // Skip the request if the state is not authenticated.
+            if (state.authenticated) {
+                // Check if session is still active
+                const check = await isAuthenticated();
+                console.log('sessionTimeout', check)
+                if (!check) {
+                    location.reload(true); // Deprecated but used to bypass cache in some browsers
+                }
+            }
+        } catch (error) {
+            console.error('[sessionTimeoutLoop]', error)
+        } finally {
+            await sleep(delayInS)
+        }
+    }
+}
+
+
 
 /**
  * Checks if authentication is still active. Returns boolean on success.
@@ -140,7 +166,6 @@ export async function authPage () {
 
     // Check first if the creds are set and if signup is needed.
     let credsAreSet = await credentialsAreSet();
-    console.log('test 2', credsAreSet);
     if (!credsAreSet) {
         let repeatField = create('input', 'txt-input-auth-repeat', 'form-auth');
         repeatField.placeholder = 'repeat password';

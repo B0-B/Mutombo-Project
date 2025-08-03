@@ -66,7 +66,7 @@ const logPath       = path.join(__dirname, 'logs');
     // ---- Additional Loops ----
     // Run a dynamic config updater
     // Safe background loop to reload config, rectify if errors occur etc.
-    const configReloadTimeMs = 1000;
+    const configReloadTimeMs = 100;
     configUpdater(config, configReloadTimeMs);
     // Run stats analysis repeatedly
     const statsAnalysisTimeMs = 5000;
@@ -83,23 +83,28 @@ const logPath       = path.join(__dirname, 'logs');
 
     // Authentication endpoint
     app.use(express.json()); // auto json parsing etc.
-    app.post('/auth', (req, res) => {
+    app.post('/auth', async (req, res) => {
 
         // Check if credentials are set for signup
-        if (req.body.signup)
+        if (req.body.signup) {
             if (config.authHash == "")
                 return res.json({status: false});
             else
                 return res.json({status: true});
+        }
+            
 
         // Check if session is still authenticated
-        if (req.body.check)
+        if (req.body.check) {
+            // Source config (just in case)
+            config          = await loadConfig();
             if (config.authenticated == true) {
-                noteActivity(config);
-                saveConfig(config);
                 return res.json({status: true});
-            } else
+            } else {
                 return res.json({status: false});
+            }
+        }
+            
 
         // extract the payload
         const payload = req.body.password;

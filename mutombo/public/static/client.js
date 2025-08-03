@@ -4,8 +4,6 @@ import { state } from './state.js';
 import { authPage } from './auth.js';
 import { dashPage } from './dashboard.js';
 
-var app = document.getElementById('app');
-
 async function __main__ () {
 
     // DNS Resolve test
@@ -17,7 +15,7 @@ async function __main__ () {
     // Set title of document.
     document.title = "Mutombo";
 
-    // authenticate - block until authentication
+    // Authenticate - blocks until authentication
     await authPage();
     
 
