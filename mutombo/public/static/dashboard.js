@@ -622,16 +622,16 @@ async function loadStatsContainerContent (container) {
     const searchUtilityRow = create('div', 'log-search-row', logWrapper);
     searchUtilityRow.classList.add('row', 'no-gutters');
     const searchInputCol   = create('div', 'log-search-input-col', searchUtilityRow);
-    searchInputCol.classList.add('col-9');
+    searchInputCol.classList.add('col-12');
     const searchInput      = create('input', 'log-search-input', searchInputCol);
     style(searchInput, {width: '100%'});
     searchInput.placeholder = 'source logs ...';
     searchInput.classList.add('bg-dark-medium');
-    const searchSubmitCol  = create('div', 'search-submit-col', searchUtilityRow);
-    searchSubmitCol.classList.add('col-3');
-    const logSubmitButton  = create('button', 'log-search-submit-button', searchSubmitCol);
-    logSubmitButton.innerHTML = 'search';
-    style(logSubmitButton, {height: '100%', borderWidth: 0, padding: 0, width: '100%'});
+    // const searchSubmitCol  = create('div', 'search-submit-col', searchUtilityRow);
+    // searchSubmitCol.classList.add('col-3');
+    // const logSubmitButton  = create('button', 'log-search-submit-button', searchSubmitCol);
+    // logSubmitButton.innerHTML = 'search';
+    // style(logSubmitButton, {height: '100%', borderWidth: 0, padding: 0, width: '100%'});
     
     // Prepare a table row where to place the table later
     const logTableRow = create('div', 'log-section-log-table-row', logWrapper);
@@ -644,23 +644,22 @@ async function loadStatsContainerContent (container) {
         overflowY: 'auto', 
         msOverflowStyle: 'none'});
 
-    // Add submit routine
-    logSubmitButton.addEventListener('click', async () => {
-        // Prepare data for logs table
-        const data = await (await fetch('/logs', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ searchInput: searchInput.value })
-        })).json();
-        // Create and inject table
-        logTableWrapper.innerHTML = '';
-        await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
-    });
-    // Execute an empty search
-    logSubmitButton.click()
+    // // Add submit routine
+    // logSubmitButton.addEventListener('click', async () => {
+    //     // Prepare data for logs table
+    //     const data = await (await fetch('/logs', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({ searchInput: searchInput.value })
+    //     })).json();
+    //     // Create and inject table
+    //     logTableWrapper.innerHTML = '';
+    //     await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
+    // });
+    // // Execute an empty search
+    // logSubmitButton.click()
 
-
-    searchInput.addEventListener('input', async () => {
+    async function searchLogs () {
         if (searchInput.value && searchInput.value.length >= 3 || searchInput.value.length == 0) {
             // Prepare data for logs table
             const data = await (await fetch('/logs', {
@@ -672,7 +671,13 @@ async function loadStatsContainerContent (container) {
             logTableWrapper.innerHTML = '';
             await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
         }
+    }
+
+
+    searchInput.addEventListener('input', async () => {
+        searchLogs()
     });
+    searchLogs(); // Call once at init
 
 
 
