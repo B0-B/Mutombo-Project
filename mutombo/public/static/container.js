@@ -62,7 +62,7 @@ export function focusContainer (container) {
 var activeContainer = null;
 export class movingContainer {
 
-    constructor (name, size=[200, 200], content="", heading="") {
+    constructor (name, size=[200, 200], content="", heading="", dragEverywhere=false) {
 
         this.expectedName = name;
 
@@ -91,15 +91,16 @@ export class movingContainer {
         }
 
         // Style the element
-        this.element.style.position = 'absolute';
-        this.element.style.display = 'block';
-        this.element.style.backgroundColor = 'rgba(0,0,0,0.4)';
-        this.element.style.left     = this.info.position[0] + 'px';
-        this.element.style.top      = this.info.position[1] + 'px';
-        this.element.style.width  = this.info.size[0] + 'px';
-        this.element.style.height = this.info.size[1] + 'px';
+        this.element.style.zIndex               = 999; // default zIndex is 999, and 1000 if the container is focused, then 
+        this.element.style.position             = 'absolute';
+        this.element.style.display              = 'block';
+        this.element.style.backgroundColor      = 'rgba(0,0,0,0.4)';
+        this.element.style.left                 = this.info.position[0] + 'px';
+        this.element.style.top                  = this.info.position[1] + 'px';
+        this.element.style.width                = this.info.size[0] + 'px';
+        this.element.style.height               = this.info.size[1] + 'px';
         this.element.style.webkitBackdropFilter = `blur(${this.info.blur}px)`; // For Safari
-        this.element.style.backdropFilter = `blur(${this.info.blur}px)`;
+        this.element.style.backdropFilter       = `blur(${this.info.blur}px)`;
         this.element.classList.add('rounded', 'contour');
 
         // Add content
@@ -121,7 +122,7 @@ export class movingContainer {
         // Define the event listeners correspondingly.
         this.element.addEventListener('mousedown', (e) => {
             // Ensure to only click on background or header
-            if (e.target !== this.element && e.target !== this.header) return;
+            if (!dragEverywhere && e.target !== this.element && e.target !== this.header) return;
             activeContainer = this;
             // Activate dragging on left click action.
             if (e.button === 0) this.draggingActive = true;

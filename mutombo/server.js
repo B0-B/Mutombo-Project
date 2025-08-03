@@ -14,7 +14,9 @@ const { loadJSON,
         analyzeStats,
         loadConfig,
         stripURLtoDomain,
-        collectRequestInfoForStats} = require('#utils');
+        collectRequestInfoForStats,
+        sessionWatchdog,
+        noteActivity} = require('#utils');
 const { RDNS }      = require('#rdns');
 const { Blocker }   = require('#block');
 
@@ -25,11 +27,14 @@ const logPath       = path.join(__dirname, 'logs');
 
 (async () => {
     
-    // Globals
+    // ---- Globals ----
     var config          = await loadConfig(); // load the config file
     var upload          = multer({ dest: 'data/img/' }); // image access
     const urlPattern    = /^[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]*$/;
-    var authenticated   = false;
+
+    // Authentication
+    config.authenticated        = false;
+    // var lastActivity         = 0;
 
     // Caching Globals
     // Statistics Aggregation
@@ -60,13 +65,15 @@ const logPath       = path.join(__dirname, 'logs');
 
     // ---- Additional Loops ----
     // Run a dynamic config updater
-    // Safe background loop to reload config
+    // Safe background loop to reload config, rectify if errors occur etc.
     const configReloadTimeMs = 1000;
     configUpdater(config, configReloadTimeMs);
     // Run stats analysis repeatedly
     const statsAnalysisTimeMs = 5000;
     analyzeStats(stats, statsAnalysisTimeMs);
-
+    // Run session watchdog to terminate session after idle timeout
+    const sessionWatchdogTimeMs = 100;
+    sessionWatchdog(config, sessionWatchdogTimeMs);
 
     // ---- Web Server & API endpoints ----
     const app = express();
@@ -87,9 +94,11 @@ const logPath       = path.join(__dirname, 'logs');
 
         // Check if session is still authenticated
         if (req.body.check)
-            if (authenticated == true)
+            if (config.authenticated == true) {
+                noteActivity(config);
+                saveConfig(config);
                 return res.json({status: true});
-            else
+            } else
                 return res.json({status: false});
 
         // extract the payload
@@ -105,20 +114,23 @@ const logPath       = path.join(__dirname, 'logs');
         // Check if a hash was set for this dashboard yet.
         if (!config.authHash) {
             config.authHash = hash;
+            config.authenticated = true;
+            noteActivity(config);
             saveConfig(config);
-            authenticated = true;
             return res.json({msg: 'New password was set!', status: true});
         }
 
         // Otherwise check if the hashes match
         if (config.authHash == hash) {
-            authenticated = true;
+            config.authenticated = true;
+            noteActivity(config);
+            saveConfig(config);
             console.log('New login!')
             return res.json({msg: 'Authenticated.', status: true});
         }
 
         // Block everything else
-        authenticated = false;
+        config.authenticated = false;
         return res.json({msg: '[ERROR] Blocked.', status: false});
 
     });
@@ -128,7 +140,7 @@ const logPath       = path.join(__dirname, 'logs');
     app.post('/state', async (req, res) => {
 
         // Login wall. 
-        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         console.log('Received request body:\n', req.body)
 
         // Serve the most recent state of the config object
@@ -141,6 +153,7 @@ const logPath       = path.join(__dirname, 'logs');
         // Complete override option
         else if (req.body.mode === 'override') {
             config.state = req.body.data;
+            noteActivity();
             await saveConfig(); // Save the config persistently.
             return res.json({status: true})
         }
@@ -148,11 +161,15 @@ const logPath       = path.join(__dirname, 'logs');
         else if (req.body.mode === 'container') {
             const container_info = req.body.data;
             config.state.dashboard.containers[container_info.name] = container_info;
+            noteActivity();
             await saveConfig(config); // Save the config persistently.
             return res.json({status: true})
         }
         // Blocklist activity setting
         else if (req.body.mode === 'blocklist') {
+
+            // Note activity ahead.
+            noteActivity(config);
 
             // Check if activity is defined as a boolean
             if (req.body.type === 'activity') {
@@ -217,6 +234,8 @@ const logPath       = path.join(__dirname, 'logs');
 
     // Statistics dedicated end-point (pure get end-point)
     app.post('/stats', async (req, res) => {
+        // Login wall. 
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         if (req.body.type === 'dns') {
             return res.json(stats.dns)
         }
@@ -227,12 +246,14 @@ const logPath       = path.join(__dirname, 'logs');
     app.post('/conf', async (req, res) => {
         
         // Login wall. 
-        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         
-        const delimiter = '.';
+        // Check if mode parameter was specified
         if (!req.body.mode)
             return res.json({msg: `/conf-endpoint: No "mode" parameter specified.`, data: {}});
+
         // Get mode for retrieving data from the config.
+        const delimiter = '.';
         if (req.body.mode == 'get') {
             // Source config freshly
             config          = await loadConfig();
@@ -246,6 +267,7 @@ const logPath       = path.join(__dirname, 'logs');
             console.log('/conf-endpoint - requested data target:', target);
             return res.json({msg: "Value to key: " + target, data: data})
         }
+
         // Set mode for injecting data into the config.
         else if (mode == 'set') {
             if (!req.body.data)
@@ -269,7 +291,7 @@ const logPath       = path.join(__dirname, 'logs');
     app.use(express.json());
     app.get('/download/:filename', (req, res) => {
         // Login wall. 
-        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         
         // extract filename and file extension
         const filename = req.params.filename;
@@ -291,7 +313,7 @@ const logPath       = path.join(__dirname, 'logs');
     // Upload endpoint.
     app.post('/upload', upload.single('image'), (req, res) => {
         // Login wall. 
-        if (!authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
         console.log('/upload - Image received:', req.file.originalname);
         res.json({ msg: 'Image uploaded successfully', status: true });
     });

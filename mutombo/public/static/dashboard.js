@@ -382,7 +382,7 @@ async function loadStatsContainerContent (container) {
     const totalResolutions  = dns.resolutions.total_events;
     const totalBlocks       = dns.blocks.total_events;
     const totalQueries      = totalResolutions + totalBlocks;
-    const blockShare        = Math.floor(1000 * totalBlocks / totalQueries) / 10 || 0;
+    const blockShare        = Math.round(1000 * totalBlocks / totalQueries) / 10 || 0;
     
     // Add the total query counter content
     const totalQueryContent = create('div', 'total-query-content', totalQueryCol);
@@ -549,7 +549,7 @@ async function loadStatsContainerContent (container) {
     const total = clientQueries.reduce((acc, curr) => acc + curr, 0);
     let outputs = [];
     for (let queries of clientQueries) {
-        const share = Math.floor( 1000 * queries / total ) / 10;
+        const share = Math.round( 1000 * queries / total ) / 10;
         outputs.push(`${queries} (${share}%)`);
     }
     const pieChartColors    = [
@@ -586,7 +586,7 @@ async function loadStatsContainerContent (container) {
                     color: '#fff',
                     formatter: (queries, context) => {
                         // const label = context.chart.data.labels[context.dataIndex];
-                        return `${context.chart.data.labels[context.dataIndex]} (${Math.floor( 1000 * queries / total ) / 10}%)`;
+                        return `${context.chart.data.labels[context.dataIndex]} (${Math.round( 1000 * queries / total ) / 10}%)`;
                     },
                     font: {
                         weight: 'bold',
@@ -642,6 +642,159 @@ async function loadStatsContainer () {
 
 }
 
+// ============ Clock Widget Container ============
+async function loadClockContainer () {
+
+    const clockSizeInPx = 300;  
+    
+    // Initialize the container frame
+    let container = new movingContainer('clock', [ clockSizeInPx, clockSizeInPx ], "", "", true);
+    container.header.remove(); // remove header
+    container.body.style.padding = '0';
+    container.element.style.backgroundColor = 'rgba(0,0,0,0)'
+    autoPlaceContainer('clock');
+
+    await loadClassicClock(container, clockSizeInPx);
+
+}
+
+async function loadClassicClock (container, clockSizeInPx) {
+
+    let containerBody = container.body;
+    containerBody.classList.add('container');
+    containerBody.innerHTML = '';
+    container.element.style.overflow = 'hidden';
+
+    const clockWrapper = create('div', 'classic-clock-wrapper', containerBody);
+    style(clockWrapper, {width: `${clockSizeInPx}px`, height: `${clockSizeInPx}px`, zIndex: '998'})
+
+    // Create canvas and context
+    const canvas = create('canvas', 'classic-clock-frame', clockWrapper);
+    const ctx = canvas.getContext('2d');
+
+    // Set the desired size (e.g., 300x300 for 1:1 ratio)
+    canvas.width = clockSizeInPx;
+    canvas.height = clockSizeInPx;
+
+    // Optional: Add styles to match the attributes
+    style(canvas, {width: '100%', height: 'auto', aspectRatio: `1 / 1`})
+
+    // Set background color
+    ctx.fillStyle = '#111'; // Set the fill color
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill the entire canvas
+
+
+    // Create clock dial
+    const a    = canvas.width; // square side
+    const R    = a / 2;
+    const center = [Math.round(canvas.width / 2), Math.round(canvas.height / 2)];
+
+    // Create Center
+    const dialColor = 'white';
+    ctx.beginPath();
+    ctx.arc(center[0], center[1], 6, 0, 2 * Math.PI);
+    ctx.fillStyle = dialColor;
+    ctx.fill();
+
+    // Create dial ticks
+    for (let angle=0; angle<360; angle=angle+6) {
+
+        // Convert angle to radians
+        const rad = 2 * Math.PI * angle / 360;
+
+        // Define radial unit vector and multiply by the heading to 
+        // aim at the starting point of rendering
+        const x = Math.cos(rad), 
+              y = Math.sin(rad); 
+        
+        // Define the limit for the magnitude of r i.e. when it touches the outside square.
+        let rLim;
+        if (Math.abs(x) < Math.abs(y)) {
+            const ySign = Math.sign(y);
+            rLim = [a*x/(2*y)*ySign, a/2*ySign];
+        } else if (Math.abs(y) < Math.abs(x)) {
+            const xSign = Math.sign(x);
+            rLim = [a/2*xSign, a*y/(2*x)*xSign];
+        } else {
+            let rMax = a / Math.sqrt(2);
+            rLim = [rMax, rMax]
+        }
+
+        // Define start
+        var dialPadding;
+        if (angle % 90 == 0) {
+            dialPadding   = 0.7;
+            ctx.lineWidth = 7;
+        } else if (angle % 5 == 0) {
+            dialPadding = 0.8;
+            ctx.lineWidth = 5;
+        } else {
+            dialPadding = 0.9;
+            ctx.lineWidth = 3;
+        }
+        var r0   = [ dialPadding * rLim[0], dialPadding * rLim[1] ];
+
+        // Shift to origin
+        r0 = [center[0] + r0[0], center[1] + r0[1]];
+        rLim = [center[0] + 1.1*rLim[0], center[1] + 1.1*rLim[1]];
+
+        // Based on the r limit define the limit vector point
+        ctx.strokeStyle = dialColor;
+        ctx.beginPath();
+        ctx.moveTo(...r0);
+        ctx.lineTo(...rLim);
+        ctx.stroke();
+
+    }
+
+    // Finalize dial as image snapshot
+    const dial = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Create handle render function which can be called continuously
+    async function renderTime () {
+        const d = new Date();
+        const h = d.getHours();
+        const m = d.getMinutes();
+        const s = d.getSeconds();
+
+        // Create hour handle
+        const hourScale = 0.6;
+        const hourAngle = ((h + m / 60 + s / 3600) / 12) * 2 * Math.PI - Math.PI/2;
+        const rHour     = [center[0] + hourScale * R * Math.cos(hourAngle), center[1] + hourScale * R * Math.sin(hourAngle)];
+        ctx.lineWidth   = 10;
+        ctx.beginPath();
+        ctx.moveTo(...center);
+        ctx.lineTo(...rHour);
+        ctx.stroke();
+
+        // Create minute handle
+        const minScale  = 0.8;
+        ctx.lineWidth   = 8;
+        const minAngle  = (m + s/60) / 60 * 2 * Math.PI - Math.PI/2; 
+        const rMin      = [center[0] + minScale * R * Math.cos(minAngle), center[1] + minScale * R * Math.sin(minAngle)];
+        ctx.beginPath();
+        ctx.moveTo(...center);
+        ctx.lineTo(...rMin);
+        ctx.stroke();
+    } 
+
+    async function ticTac () {
+        while (true) {
+            try {
+                ctx.putImageData(dial, 0, 0);
+                await renderTime()
+            } catch (error) {
+                console.error('[clock widget]', error)
+            } finally {
+                await sleep(200);
+            }
+        }
+    }
+
+    // Start the clock asynchronously
+    ticTac();
+
+}
 
 
 export async function dashPage (params) {
@@ -660,4 +813,5 @@ export async function dashPage (params) {
     loadNavigation();
     loadBlocklistContainer();
     loadStatsContainer();
+    loadClockContainer();
 }

@@ -299,3 +299,36 @@ export async function analyzeStats (stats, updateTimeMs) {
   }
   
 }
+
+// ============= Session Functions =============
+
+/**
+ * Enforces a session logout after a hard idle time window - defined in config.
+ * @param {object} config Session config object.
+ * @param {number} updateTimeMs Update period in milliseconds.   
+ */
+export async function sessionWatchdog (config, updateTimeMs) {
+  while (true) {
+    try {
+      // Skip loop if not authenticated.
+      if (!config.authenticated) continue;
+      // Check for idle time if it exceeds the timeout
+      const idleMinutes = (Date.now() - config.lastActiveTimestamp) / 60000;
+      if (idleMinutes > config.idleTimeoutMin) {
+        config.authenticated = false;
+        await saveConfig(config);
+      }
+    } catch (error) {
+      console.error('[sessionWatchdog]', error)
+    } finally {
+      await sleep(updateTimeMs)
+    }
+  }
+}
+
+/**
+ * Updates the config timestamp in config object. 
+ */
+export async function noteActivity (config) {
+  config.lastActiveTimestamp = Date.now()
+}
