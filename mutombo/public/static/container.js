@@ -247,7 +247,7 @@ export function createTableFromJSON (jsonList,
 
 
 /**
- * Iterates through table rows and calls callback on cells matching any target value.
+ * Iterates through table rows and calls callback on cells which include any of the provided target values.
  * Skips header row. If no columnIndex is given, checks all columns.
  *
  * @param {HTMLElement} table - Table to operate on.
@@ -269,7 +269,7 @@ export function filterTableByValues(table, targetValues, callback, columnIndex =
             const value = cell.textContent.trim();
 
             for (const target of targetValues) {
-                if (value === target) {
+                if (value.includes(target)) {
                     callback(cell, target, rows[i]);
                 }
             }

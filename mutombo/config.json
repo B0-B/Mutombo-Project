@@ -22,8 +22,8 @@
           "id": "moving-container-blocklist",
           "blur": 2,
           "position": [
-            1160,
-            26
+            1163,
+            28
           ],
           "size": [
             800,
@@ -49,7 +49,7 @@
           "blur": 2,
           "position": [
             32,
-            103
+            104
           ],
           "size": [
             300,
@@ -81,5 +81,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1754340265376
+  "lastActiveTimestamp": 1754348912736
 }

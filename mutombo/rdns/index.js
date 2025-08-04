@@ -185,7 +185,7 @@ export class RDNS {
     // Perform recursive lookup via root servers.
     const rootQuery = await this.rootLookup(domain);
     const ipList = [...rootQuery['ipv4'], ...rootQuery['ipv6']];
-    // console.log('root ip list', ipList);
+    
     // Stop if the root query did not yield a result
     if (ipList.length === 0) {
         // Log the dead domain
@@ -195,7 +195,7 @@ export class RDNS {
         
     const ipv4ListStringified = JSON.stringify(rootQuery['ipv4']);
     const ipv6ListStringified = JSON.stringify(rootQuery['ipv6']);
-    
+
     // Log the recursive lookup
     logDnsInfo(domain, 'lookup');
 

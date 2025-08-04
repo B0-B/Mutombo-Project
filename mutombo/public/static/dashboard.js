@@ -525,6 +525,7 @@ async function loadStatsContainerContent (container) {
     // -------- Clients Share Chart --------
     const secondRow                 = create('div', 'second-row', containerBody);
     secondRow.classList.add('row', 'no-gutters');
+    secondRow.style.marginTop       = '10px';
     const clientPieChartCol         = create('div', 'client-pie-chart-col', secondRow);
     clientPieChartCol.classList.add('col-12', 'justify-content-md-center');
     clientPieChartCol.style.height  = 'auto';
@@ -627,11 +628,6 @@ async function loadStatsContainerContent (container) {
     style(searchInput, {width: '100%'});
     searchInput.placeholder = 'source logs ...';
     searchInput.classList.add('bg-dark-medium');
-    // const searchSubmitCol  = create('div', 'search-submit-col', searchUtilityRow);
-    // searchSubmitCol.classList.add('col-3');
-    // const logSubmitButton  = create('button', 'log-search-submit-button', searchSubmitCol);
-    // logSubmitButton.innerHTML = 'search';
-    // style(logSubmitButton, {height: '100%', borderWidth: 0, padding: 0, width: '100%'});
     
     // Prepare a table row where to place the table later
     const logTableRow = create('div', 'log-section-log-table-row', logWrapper);
@@ -643,21 +639,8 @@ async function loadStatsContainerContent (container) {
         scrollbarWidth: 'none', 
         overflowY: 'auto', 
         msOverflowStyle: 'none'});
-
-    // // Add submit routine
-    // logSubmitButton.addEventListener('click', async () => {
-    //     // Prepare data for logs table
-    //     const data = await (await fetch('/logs', {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({ searchInput: searchInput.value })
-    //     })).json();
-    //     // Create and inject table
-    //     logTableWrapper.innerHTML = '';
-    //     await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
-    // });
-    // // Execute an empty search
-    // logSubmitButton.click()
+    
+    
 
     async function searchLogs () {
         if (searchInput.value && searchInput.value.length >= 3 || searchInput.value.length == 0) {
@@ -669,11 +652,22 @@ async function loadStatsContainerContent (container) {
             })).json();
             // Create and inject table
             logTableWrapper.innerHTML = '';
-            await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
+            const table = await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
+            // Align column widths
+            setRelativeColumnWidths(table, [0.3, 0.7]);
+            // Color blocked domains
+            filterTableByValues(table, ['blocked'], (cell, value, row) => {
+                row.setAttribute("style", "background-color: #dc3f51ff !important;");
+                row.setAttribute("style", "--bs-table-bg: #9a404bff !important;");
+            });
+            // filterTableByValues(table, [''], (cell, value, row) => {
+            //     if (value.includes('blocked'))
+            //         row.style.backgroundColor = '#dc3f51ff !important' --bs-table-bg
+            // })
         }
     }
 
-
+    // Add a search algorithm to the search input element 
     searchInput.addEventListener('input', async () => {
         searchLogs()
     });
@@ -715,7 +709,7 @@ async function loadStatsContainerContent (container) {
 async function loadStatsContainer () {
     
     // Initialize the container frame
-    let container = new movingContainer('statistics', [ 800, 900 ], "", 'DNS Statistics');
+    let container = new movingContainer('statistics', [ 800, 950 ], "", 'DNS Statistics');
     autoPlaceContainer('statistics');
 
     await loadStatsContainerContent(container);
