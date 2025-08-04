@@ -212,8 +212,6 @@ export class RDNS {
 
   }
 
-  
-
   /**
     * Equivalent to RDNS.lookup but with secure production-ready validation, logging etc.
     * @param {string} domain - domain name to resolve.

@@ -332,7 +332,7 @@ const logPath       = path.join(__dirname, 'logs');
             else {
                 // Slice logList if it becomes too long
                 if (logList.length > top_n) {
-                    logList = logList.slice(-top_n);
+                    logList = logList.slice(0, top_n);
                 }
                 // Convert to json
                 for (let logLine of logList) {
