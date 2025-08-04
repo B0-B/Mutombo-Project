@@ -70,7 +70,7 @@ export class RDNS {
     // Resolve the database path
     this.databasePath = path.resolve(__dirname, 'domains.db');
     
-    console.log('db path', this.databasePath);
+    console.log('Load database', this.databasePath, '...');
     let initTables = false;
     if (!fs.existsSync(this.databasePath))
         initTables = true
@@ -156,13 +156,12 @@ export class RDNS {
         // Unpack the query 
         id    = dbResults[0]['id'];
         count = dbResults[0]['count'];
-        console.log('debug', dbResults)
         const parsedIPv4List = JSON.parse( dbResults[0]['ipv4_list'] )
         const parsedIPv6List = JSON.parse( dbResults[0]['ipv6_list'] )
 
         // Concatenate to a single list of IPs
         const parsedIPList = [...parsedIPv4List, ...parsedIPv6List];
-        console.log('parsed ip list', parsedIPList)
+        // console.log('parsed ip list', parsedIPList)
         
         // Check if the parsedList is an empty object or empty array. 
         // This its not accidentally treating an array as an object in the 
@@ -173,11 +172,9 @@ export class RDNS {
             empty_ip_list = true;
         } else {
             // Update the request count in database.
-            const updatedCount = count + 1;
             await this.send(`UPDATE domains
-                            SET count=${updatedCount}
+                            SET count=${count + 1}
                             WHERE id=${id};`)
-            console.log('return')
             // Here the IP was found in db and can be returned directly.
             return parsedIPList[0]
         }
@@ -186,7 +183,7 @@ export class RDNS {
     // Perform recursive lookup via root servers.
     const rootQuery = await this.rootLookup(domain);
     const ipList = [...rootQuery['ipv4'], ...rootQuery['ipv6']];
-    console.log('root ip list', ipList);
+    // console.log('root ip list', ipList);
     if (ipList.length === 0)
         throw Error('Cannot resolve domain:' + domain)
     const ipv4ListStringified = JSON.stringify(rootQuery['ipv4']);

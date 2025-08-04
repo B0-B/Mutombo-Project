@@ -12,11 +12,13 @@ Works like a DNS but returns a domain name for a provided IP, i. e. reverses the
 
 # Dev Status
 
+- [ ] Add to every resolved domain a timestamp of the last root lookup in sqlite table. This will allow to automatically update the IPs when the timestamp exceeds a threshold.
 - [ ] Custom moving container style, need to persist info on opacity, background color etc. and make it resizable.
-- [ ] Create a little clock widget
-- [ ] Add the corr. blocklist info (which blocklist filter caused the blocking?) into rdns log, for later sourcing
+
+- [ ] Add the corr. blocklist info (which blocklist filter caused the blocking?) into rdns log, for later sourcing. Need a re-write of the RNDS log routine.
 - [ ] Make moving containers collapsible
 - [ ] Add menu bar for style control to moving containers
+- [x] Create a little clock widget
 - [x] Add total counters to DNS stats container
 - [x] Add chart for request/blocking statistics to stats container
 - [x] Add statistics container in dashboard 
