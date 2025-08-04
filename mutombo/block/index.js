@@ -1,4 +1,4 @@
-import { loadJSON, log, saveConfig, loadConfig, timestamp, sleep } from '#utils';
+import { loadJSON, log, logDnsInfo, saveConfig, loadConfig, timestamp, sleep } from '#utils';
 
 export class Blocker {
     /**
@@ -118,9 +118,11 @@ export class Blocker {
             let set = this.cache.blocklistSets[listName];
             
             // Lookup query of domain in domain set of current blocklist
-            if (set.has(domain)) // sets have fast table lookups
+            if (set.has(domain)) {// sets have fast table lookups
+                // Log at this point as the list name is sourced already
+                logDnsInfo(domain, 'blocked', null, listName);
                 return true
-
+            }
         }
         return false
     }

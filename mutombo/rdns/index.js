@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { spawn } from 'child_process';
 import sqlite3 from 'sqlite3';
-import { log, sleep } from '#utils';
+import { log, logDnsInfo, sleep } from '#utils';
 
 
 const { verbose } = sqlite3;
@@ -175,6 +175,8 @@ export class RDNS {
             await this.send(`UPDATE domains
                             SET count=${count + 1}
                             WHERE id=${id};`)
+            // Log DNS resolution
+            logDnsInfo(domain, 'resolved', parsedIPList[0]);
             // Here the IP was found in db and can be returned directly.
             return parsedIPList[0]
         }
@@ -184,10 +186,18 @@ export class RDNS {
     const rootQuery = await this.rootLookup(domain);
     const ipList = [...rootQuery['ipv4'], ...rootQuery['ipv6']];
     // console.log('root ip list', ipList);
-    if (ipList.length === 0)
+    // Stop if the root query did not yield a result
+    if (ipList.length === 0) {
+        // Log the dead domain
+        logDnsInfo(domain, 'dead');
         throw Error('Cannot resolve domain:' + domain)
+    }
+        
     const ipv4ListStringified = JSON.stringify(rootQuery['ipv4']);
     const ipv6ListStringified = JSON.stringify(rootQuery['ipv6']);
+    
+    // Log the recursive lookup
+    logDnsInfo(domain, 'lookup');
 
     // Feedback the result to database with new row entry.
     if (empty_ip_list) {
@@ -220,11 +230,9 @@ export class RDNS {
     try {
         // Resolve the domain securely
         const ip = await this.lookup(domain);
-        log(this.logFile, `Resolved query "${domain}"`);
         return ip
     } catch (err) {
-        console.error(err);
-        log(this.logFile, `Failed to resolve "${domain}"`);
+        console.error(`[RDNS] failed to resolve "${domain}":\n${err}`);
         return '0.0.0.0'
     }
   

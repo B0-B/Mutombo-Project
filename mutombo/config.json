@@ -48,8 +48,8 @@
           "id": "moving-container-clock",
           "blur": 2,
           "position": [
-            31,
-            108
+            32,
+            103
           ],
           "size": [
             300,
@@ -81,5 +81,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1754266510772
+  "lastActiveTimestamp": 1754340265376
 }

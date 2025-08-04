@@ -58,7 +58,6 @@ export async function loadConfig() {
     return await loadJSON(configPath)
 }
 
-
 /**
  * Updates the provided config reference or variable object with the newly sourced one.
  * @param {Object} configVariable - config JSON-object which should be updated.
@@ -87,7 +86,6 @@ export async function configUpdater (configVariable, updateTimeMs) {
   }
 }
 
-
 /**
  * Hashes a payload with SHA-256 algorithm and returns the hex output.
  * @returns {String}
@@ -95,7 +93,6 @@ export async function configUpdater (configVariable, updateTimeMs) {
 export function _hash (payload) {
     return crypto.createHash('sha256').update(payload).digest('hex')    
 }
-
 
 /**
  * A fast strip down function which turns URLs securely into domain format.
@@ -162,6 +159,29 @@ export function parseTimestamp(str) {
  */
 export function log (logPath, payload) {
   fs.appendFile(logPath, timestamp() + '\t' + payload + '\n', err => {if (err) console.error("Log failed:", err);})
+}
+
+export const dnsPath = path.join(__dirname, '../logs/rdns.log')
+/**
+ * @param {string} domain The domain involved in the DNS request
+ * @param {string} status The status can be "blocked", "resolved", "lookup" or "dead"
+ * @param {null} [ip=null] Provide IP if status is resolved.
+ * @param {null} [blocklistName=null] Name of the blocklist if status is blocked
+ * @returns {Promise<void>}
+ */
+export async function logDnsInfo (domain, status, ip=null, blocklistName=null) {
+  // Create payload
+  let payload;
+  if (status === 'blocked') {
+    payload = `${domain} ${status} by "${blocklistName}"`;
+  } else if (status === 'resolved') {
+    payload = `${status} ${domain} as ${ip}`;
+  } else if (status === 'lookup') {
+    payload = `Recursively lookup "${domain}"`;
+  } else if (status === 'dead') {
+    payload = `"${domain}" not found - service unresponsive.`;
+  }
+  log(dnsPath, payload);
 }
 
 /**
