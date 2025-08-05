@@ -82,6 +82,13 @@ const logPath       = path.join(__dirname, 'logs');
     // Serve static files from the "public" directory
     app.use(express.static(staticPath));
 
+    // root endpoint
+    app.get('/', (req, res, next) => {
+        noteActivity();
+        // Pass control again to express static middleware
+        next();
+    });
+
     // Authentication endpoint
     app.use(express.json()); // auto json parsing etc.
     app.post('/auth', async (req, res) => {

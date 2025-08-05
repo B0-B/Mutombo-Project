@@ -9,8 +9,8 @@
           "id": "moving-container-navigation",
           "blur": 2,
           "position": [
-            32,
-            28
+            1301,
+            762
           ],
           "size": [
             300,
@@ -22,8 +22,8 @@
           "id": "moving-container-blocklist",
           "blur": 2,
           "position": [
-            1163,
-            28
+            1154,
+            11
           ],
           "size": [
             800,
@@ -35,12 +35,12 @@
           "id": "moving-container-statistics",
           "blur": 2,
           "position": [
-            344,
-            28
+            19,
+            10
           ],
           "size": [
             800,
-            900
+            950
           ]
         },
         "clock": {
@@ -48,8 +48,8 @@
           "id": "moving-container-clock",
           "blur": 2,
           "position": [
-            32,
-            104
+            836,
+            11
           ],
           "size": [
             300,
@@ -81,5 +81,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1754348912736
+  "lastActiveTimestamp": 1754417221216
 }

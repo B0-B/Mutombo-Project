@@ -11,6 +11,7 @@ import { create,
          style } from './container.js';
 import { aggregateTimeseriesArray, timesArray } from './timeseries.js';
 import { sessionTimeoutLoop } from './auth.js';
+import { highlight } from './ani.js';
 
 // Register plugin BEFORE instantiating the chart
 // Chart.register(ChartDataLabels);
@@ -229,6 +230,8 @@ async function  loadBlocklistContainerContent (container) {
     const blockListTable = createTableFromJSON(blocklists, 'blocklist-overview');
     blockListTable.id = 'blocklist-table';
     blockListTable.style.color = 'white';
+
+    blockListTable.classList.add('holo-table', 'table-hover');
     
 
     // Manipulate table to include a row of switches for enabling/disabling blocklists
@@ -485,13 +488,31 @@ async function loadStatsContainerContent (container) {
             dns.top_queried_domains, 
             tableWrapper.id, 
             false, 
-            'hidden', 
-            true,
-            false, 
-            true);
-    topQueryTable.classList.add('table-hover');
-    style(topQueryTable, {maxHeight: globalTableHeight, color: 'white', backgroundColor: 'rgba(20,20,20,0.6)'})
+            'hidden');
+    topQueryTable.classList.add('holo-table');
+    style(topQueryTable, {maxHeight: globalTableHeight, color: '#ddd', backgroundColor: 'rgba(20,20,20,0.6)'})
     setRelativeColumnWidths(topQueryTable, [0.6, 0.2, 0.2]);
+    // Add links to the domains which point to the source logs
+    filterTableByColumn(topQueryTable, 0, (cell, row, col) => {
+        // Extract search domain and clean up the cell.
+        const domainToSearchFor = cell.textContent;
+        cell.innerHTML = '';
+        // Create link which points to logs utility
+        const link = create('a', 'domain-search-link-wrapper', cell);
+        link.href = '#'
+        link.innerHTML = domainToSearchFor;
+        style(link, {cursor: 'pointer', textDecoration: 'underline', color: 'white'});
+        // Modify link behaviour on click: Will send the domain into logs input and init a search
+        link.addEventListener('click', async (event) => {
+            event.stopPropagation(); // prevents bubbling to row click if it has one
+            const logInput = document.getElementById('log-search-input');
+            logInput.value = domainToSearchFor;
+            // Trigger the 'input' event manually
+            const triggerSearchEvent = new Event('input', { bubbles: true });
+            logInput.dispatchEvent( triggerSearchEvent );
+            highlight(document.getElementById('log-section-wrapper'));
+        });
+    });
 
 
     // -------- Top Blocked Domains Table --------
@@ -513,11 +534,8 @@ async function loadStatsContainerContent (container) {
             dns.top_blocked_domains, 
             blockTableWrapper.id, 
             false, 
-            'hidden', 
-            true,
-            false, 
-            true);
-    topBlockTable.classList.add('table-hover');
+            'hidden');
+    topBlockTable.classList.add('holo-table');
     style(topBlockTable, {maxHeight: globalTableHeight, backgroundColor: 'rgba(20,20,20,0.6)'})
     setRelativeColumnWidths(topBlockTable, [0.6, 0.2, 0.2]);
 
@@ -617,6 +635,7 @@ async function loadStatsContainerContent (container) {
 
     // Build a wrapper container for structuring
     const logWrapper = create('div', 'log-section-wrapper', logTableCol);
+    logWrapper.style.border = `2px solid rgba(0,0,0,0)`;
     logWrapper.classList.add('container', 'p-0');
 
     // Add a search utility row
@@ -639,9 +658,6 @@ async function loadStatsContainerContent (container) {
         scrollbarWidth: 'none', 
         overflowY: 'auto', 
         msOverflowStyle: 'none'});
-    
-    
-
     async function searchLogs () {
         if (searchInput.value && searchInput.value.length >= 3 || searchInput.value.length == 0) {
             // Prepare data for logs table
@@ -652,18 +668,18 @@ async function loadStatsContainerContent (container) {
             })).json();
             // Create and inject table
             logTableWrapper.innerHTML = '';
-            const table = await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden', true, false, true);
+            const table = await createTableFromJSON(data.logs, 'log-section-log-table-wrapper', true, 'hidden');
+            table.classList.add('holo-table');
             // Align column widths
             setRelativeColumnWidths(table, [0.3, 0.7]);
             // Color blocked domains
             filterTableByValues(table, ['blocked'], (cell, value, row) => {
-                row.setAttribute("style", "background-color: #dc3f51ff !important;");
-                row.setAttribute("style", "--bs-table-bg: #9a404bff !important;");
+                // row.setAttribute("style", "background-color: #dc3f51ff !important;");
+                // row.setAttribute("style", "--bs-table-bg: #9a404bff !important;");
+                row.querySelectorAll('td, th').forEach(cell => {
+                    cell.setAttribute("style", "background-color: #dc3f51ff !important;");
+                });
             });
-            // filterTableByValues(table, [''], (cell, value, row) => {
-            //     if (value.includes('blocked'))
-            //         row.style.backgroundColor = '#dc3f51ff !important' --bs-table-bg
-            // })
         }
     }
 
@@ -671,6 +687,7 @@ async function loadStatsContainerContent (container) {
     searchInput.addEventListener('input', async () => {
         searchLogs()
     });
+    
     searchLogs(); // Call once at init
 
 
