@@ -245,7 +245,6 @@ export function createTableFromJSON (jsonList,
     return table
 }
 
-
 /**
  * Iterates through table rows and calls callback on cells which include any of the provided target values.
  * Skips header row. If no columnIndex is given, checks all columns.
@@ -319,7 +318,6 @@ export function setRelativeColumnWidths (table, relativeSpacing) {
   });
 }
 
-
 /**
  * Styles an HTML element with a whole set of attributes at once.
  * @param {HTMLElement} element 
@@ -328,4 +326,33 @@ export function setRelativeColumnWidths (table, relativeSpacing) {
  */
 export function style (element, stylingObject) {
     Object.assign(element.style, stylingObject);
+}
+
+/**
+ * 
+ * @param {number} percentage Percentage value to map onto heat scale
+ * @param {Array<number>} minColorRGB Lower end of the heat scale
+ * @param {*} maxColorRGB Upper end of the heat scale
+ * @returns {Array<number>} Resulting RGB array with numbers 0-255
+ */
+export function percentToHeatScale (percentage, minColorRGB, maxColorRGB, percentageCap=null) {
+    // Compute the delta vector
+    const delta = [
+        maxColorRGB[0] - minColorRGB[0], 
+        maxColorRGB[1] - minColorRGB[1], 
+        maxColorRGB[2] - minColorRGB[2]
+    ];
+
+    let coefficient;
+    if (percentageCap) {
+        coefficient = Math.min([1, percentage / percentageCap]) 
+    } else {
+        coefficient = percentage / 100;
+    }
+    const convertedColor = [
+        delta[0] * coefficient + minColorRGB[0],
+        delta[1] * coefficient + minColorRGB[1],
+        delta[2] * coefficient + minColorRGB[2],
+    ];
+    return convertedColor
 }

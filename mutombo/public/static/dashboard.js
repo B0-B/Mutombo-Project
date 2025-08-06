@@ -8,7 +8,8 @@ import { create,
          filterTableByValues,
          filterTableByColumn,
          setRelativeColumnWidths,
-         style } from './container.js';
+         style,
+         percentToHeatScale } from './container.js';
 import { aggregateTimeseriesArray, timesArray } from './timeseries.js';
 import { sessionTimeoutLoop } from './auth.js';
 import { highlight } from './ani.js';
@@ -513,6 +514,10 @@ async function loadStatsContainerContent (container) {
             highlight(document.getElementById('log-section-wrapper'));
         });
     });
+    filterTableByColumn(topQueryTable, 2, (cell, row, col) => {
+        const maxShare   = Number( dns.top_queried_domains[0].share.replace('%', '') );
+        // cell.style.fontWeight = 'bold'; 
+    });
 
 
     // -------- Top Blocked Domains Table --------
@@ -561,7 +566,8 @@ async function loadStatsContainerContent (container) {
         height: '220px',
         scrollbarWidth: 'none', 
         overflowY: 'auto', 
-        msOverflowStyle: 'none'});
+        msOverflowStyle: 'none',
+    paddingTop: '25px'});
     const clientPieChartCanvas = create('canvas', 'client-pie-chart', clientPieChartWrapper);
     style(clientPieChartCanvas, {height: '100%'});
 

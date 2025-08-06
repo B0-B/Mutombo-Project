@@ -120,6 +120,7 @@ html, body {
   color: #ccc; 
   font-size: 1.5rem; 
   line-height: 2rem;
+  margin: 0;
   vertical-align: middle;
   text-align: center !important;
   background: rgba(10,10,10,0.4);
