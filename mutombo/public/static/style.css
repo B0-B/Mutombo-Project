@@ -70,7 +70,7 @@ html, body {
 }
 
 .contour {
-  outline: 1px solid #FFFFFF;
+  outline: 1px solid #ddd;
   outline-offset: 0px;
 }
 
@@ -106,7 +106,7 @@ html, body {
   justify-content: center; /* horizontal */
   align-items: center;     /* vertical */
   font-size: 4rem;
-  margin-top: 20px;
+  /* margin-top: 20px; */
   margin-bottom: 20px;
 }
 
@@ -138,4 +138,27 @@ html, body {
 }
 .holo-table tr:first-child, .holo-table tr:first-child > th {
   border-top: none;
+}
+
+.menu-background-fade {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.5) 40%,
+    rgba(0, 0, 0, 0.3) 70%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.min-button-style {
+  background-color: rgba(0, 0, 0, 0);
+  height: 30px !important;
+  width: 30px !important;
+  margin-left: 10px;
+  margin-right: 10px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }

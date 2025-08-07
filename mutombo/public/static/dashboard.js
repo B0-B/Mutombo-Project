@@ -31,7 +31,7 @@ async function loadNavigation () {
     const hoverScaleFactor = 1.05;
 
     // Create a search navigation and auto-place it
-    let navi = new movingContainer('navigation', [ navWidth, navHeight ]);
+    let navi = new movingContainer('navigation', [ navWidth, navHeight ], '', '', false, false);
     navi.header.remove();
     autoPlaceContainer('navigation');
 
@@ -732,7 +732,7 @@ async function loadStatsContainerContent (container) {
 async function loadStatsContainer () {
     
     // Initialize the container frame
-    let container = new movingContainer('statistics', [ 800, 950 ], "", 'DNS Statistics');
+    let container = new movingContainer('statistics', [ 800, 950 ], "", 'DNS Statistics', false, true);
     autoPlaceContainer('statistics');
 
     await loadStatsContainerContent(container);
@@ -745,7 +745,7 @@ async function loadClockContainer () {
     const clockSizeInPx = 300;  
     
     // Initialize the container frame
-    let container = new movingContainer('clock', [ clockSizeInPx, clockSizeInPx ], "", "", true);
+    let container = new movingContainer('clock', [ clockSizeInPx, clockSizeInPx ], "", "", true, false);
     container.header.remove(); // remove header
     container.body.style.padding = '0';
     container.element.style.backgroundColor = 'rgba(0,0,0,0)'

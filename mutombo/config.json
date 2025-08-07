@@ -22,8 +22,8 @@
           "id": "moving-container-blocklist",
           "blur": 2,
           "position": [
-            1151,
-            13
+            1150,
+            12
           ],
           "size": [
             800,
@@ -49,7 +49,7 @@
           "blur": 2,
           "position": [
             835,
-            88
+            90
           ],
           "size": [
             300,
@@ -62,17 +62,17 @@
   "blocking": {
     "blocklists": [
       {
-        "name": "adguard dns filter",
-        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
-        "label": "mixed",
-        "date": "07/22/25 12:58",
-        "active": true
-      },
-      {
         "name": "the block list project - phishing list",
         "url": "https://blocklistproject.github.io/Lists/phishing.txt",
         "label": "security",
         "date": "07/29/25 03:51",
+        "active": true
+      },
+      {
+        "name": "adguard dns filter",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
+        "label": "mixed",
+        "date": "08/07/25 21:04",
         "active": true
       }
     ]
@@ -81,5 +81,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1754520006222
+  "lastActiveTimestamp": 1754593438405
 }

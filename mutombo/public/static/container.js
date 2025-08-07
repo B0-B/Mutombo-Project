@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { saveContainerState } from './api.js';
+import { transition } from './ani.js';
 
 /**
  * Places container automatically, according to coordinates in state object.
@@ -23,8 +24,7 @@ export async function autoPlaceContainer (containerName) {
  */
 export function create (tag, id, parent_id) {
     const   el = document.createElement(tag);
-            el.id = id;
-    
+    if (id) el.id = id;
     if (parent_id) {
         if (parent_id instanceof HTMLElement) {
             parent_id.appendChild(el);
@@ -62,7 +62,7 @@ export function focusContainer (container) {
 var activeContainer = null;
 export class movingContainer {
 
-    constructor (name, size=[200, 200], content="", heading="", dragEverywhere=false) {
+    constructor (name, size=[200, 200], content="", heading="", dragEverywhere=false, settingsEnabled=true) {
 
         this.expectedName = name;
 
@@ -91,21 +91,90 @@ export class movingContainer {
         }
 
         // Style the element
-        this.element.style.zIndex               = 999; // default zIndex is 999, and 1000 if the container is focused, then 
-        this.element.style.position             = 'absolute';
-        this.element.style.display              = 'block';
-        this.element.style.backgroundColor      = 'rgba(0,0,0,0.4)';
-        this.element.style.left                 = this.info.position[0] + 'px';
-        this.element.style.top                  = this.info.position[1] + 'px';
-        this.element.style.width                = this.info.size[0] + 'px';
-        this.element.style.height               = this.info.size[1] + 'px';
-        this.element.style.webkitBackdropFilter = `blur(${this.info.blur}px)`; // For Safari
-        this.element.style.backdropFilter       = `blur(${this.info.blur}px)`;
+        style(this.element, {
+            zIndex: 999, // default zIndex is 999, and 1000 if the container is focused
+            position: 'absolute',
+            display: 'block',
+            overflow: 'hidden',
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            left: this.info.position[0] + 'px',
+            top: this.info.position[1] + 'px',
+            width: this.info.size[0] + 'px',
+            height: this.info.size[1] + 'px',
+            webkitBackdropFilter: `blur(${this.info.blur}px)`,
+            backdropFilter: `blur(${this.info.blur}px)`
+        });
         this.element.classList.add('rounded', 'contour');
 
-        // Add content
-        // this.element.innerHTML = content;
+        // -------- Menu Mechanics --------
+        // Container will only contain a menu object if enabled
+        if (settingsEnabled) {
+            const settingsHeight = 30;
+            const settingsWidth = 100;
+            this.menuEnabled = false;
 
+            // Build menu frame
+            this.menuWrapper = create('div', `container-${this.info.name}-menu-wrapper`, this.element);
+            this.menuWrapper.classList.add('container', 'p-0');
+            style(this.menuWrapper, {
+                height: settingsHeight + 'px', 
+                // display: 'inline-block',
+                width: '100%', 
+            });
+            this.menuContainer = create('div', `container-${this.info.name}-menu-container`, this.menuWrapper);
+            this.menuContainer.classList.add('row', 'g-0', 'd-flex', 'justify-content-end', 'menu-background-fade');
+            style(this.menuContainer, {
+                height: settingsHeight + 'px', 
+                minHeight: settingsHeight + 'px',
+                width: '100%',
+                // backgroundColor: 'rgba(0,0,0,0.5)',
+                opacity: 0,
+                transition: 'opacity 0.3s ease-in-out'
+            });
+
+            // Build minimization button
+            const minimizeButtonCol = create('div', `container-${this.info.name}-menu-min-col`, this.menuContainer);
+            minimizeButtonCol.classList.add('col-auto', 'p-0');
+            this.minimizeButton     = create('button', `container-${this.info.name}-menu-min-btn`, minimizeButtonCol);
+            this.minimizeButton.classList.add('min-button-style');
+            const minimizeSymbol =  create('span', ``, this.minimizeButton);
+            style(minimizeSymbol, {width: '30px', height: '5px', borderRadius: '2px', backgroundColor: 'white'})
+
+            // Add hovering mechanics
+            this.element.addEventListener('mouseover', (e) => {
+                // if (e.target !== this.element) return;
+
+                const rect = this.element.getBoundingClientRect();
+                const cursorX = e.clientX, 
+                      cursorY = e.clientY; 
+
+                // Curser is in the menu range
+                if ( cursorY - rect.top <= settingsHeight && rect.right - cursorX <= settingsWidth) {
+                    // 
+                    console.log('visible')
+                    this.menuEnabled = true;
+                    this.menuContainer.style.opacity = 1;
+
+                } 
+                // Cursor is outside the menu range
+                else if (this.menuEnabled) {
+                    
+                    console.log('hidden');
+                    this.menuEnabled = false;
+                    this.menuContainer.style.opacity = 0;
+                    
+                }
+            });
+
+            // the onmouseleave
+            this.element.addEventListener('mouseleave', (e) => {
+                this.menuEnabled = false;
+                this.menuContainer.style.opacity = 0;
+            });
+        }
+        
+
+        // -------- Header and Heading ---------
         // Define header and footer and style
         this.header = create('div', `container-${this.info.name}-header`, this.element.id);
         this.body = create('div', `container-${this.info.name}-body`, this.element.id);
@@ -114,7 +183,7 @@ export class movingContainer {
         this.header.style.color = 'white';
         this.body.innerHTML = content;
         
-        // Drag and drop mechanics.
+        // -------- Drag and drop mechanics --------
         this.clickOffset = [0, 0]; // relative mouse position internal element.
         // While the mouse is down on element (left click) and moving update the element position.
         this.draggingActive = false;
@@ -145,6 +214,10 @@ export class movingContainer {
                 this.element.style.top  = `${e.pageY - this.clickOffset[1]}px`;
             }
         });
+
+        
+
+
     }
 }
 
