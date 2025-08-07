@@ -64,8 +64,7 @@ export class movingContainer {
 
     constructor (name, size=[200, 200], content="", heading="", dragEverywhere=false, settingsEnabled=true) {
 
-        this.expectedName = name;
-
+        // Add info parameter
         this.info = {};
         this.info.name = name;
         this.info.id = `moving-container-${name}`;
@@ -73,12 +72,17 @@ export class movingContainer {
         this.info.position = [200, 200];
         this.info.size = size;
 
+        // Object variables
+        this.collapsed = false;
+
         // Create element.
         this.element = create('span', this.info.id, 'page-dashboard');
+        
         // Register element in dashboard state.
         if (name in state.elements)
             throw new Error(`Element "${name}" exists already!`);
         state.elements[name] = this.element;
+
         // Check if the container info was forwarded to state
         if (!(name in state.dashboard.containers)) {
             state.dashboard.containers[name] = this.info;
@@ -90,21 +94,17 @@ export class movingContainer {
             autoPlaceContainer(name);
         }
 
-        // Style the element
+        // Style the moving container element
+        this.element.classList.add('moving-container-element', 'rounded', 'contour');
         style(this.element, {
-            zIndex: 999, // default zIndex is 999, and 1000 if the container is focused
-            position: 'absolute',
-            display: 'block',
-            overflow: 'hidden',
-            backgroundColor: 'rgba(0,0,0,0.4)',
             left: this.info.position[0] + 'px',
             top: this.info.position[1] + 'px',
             width: this.info.size[0] + 'px',
             height: this.info.size[1] + 'px',
-            webkitBackdropFilter: `blur(${this.info.blur}px)`,
-            backdropFilter: `blur(${this.info.blur}px)`
+            webkitBackdropFilter: `blur(${this.info.blur}px)`, 
+            backdropFilter: `blur(${this.info.blur}px)`,
         });
-        this.element.classList.add('rounded', 'contour');
+        
 
         // -------- Menu Mechanics --------
         // Container will only contain a menu object if enabled
@@ -127,7 +127,6 @@ export class movingContainer {
                 height: settingsHeight + 'px', 
                 minHeight: settingsHeight + 'px',
                 width: '100%',
-                // backgroundColor: 'rgba(0,0,0,0.5)',
                 opacity: 0,
                 transition: 'opacity 0.3s ease-in-out'
             });
@@ -137,8 +136,13 @@ export class movingContainer {
             minimizeButtonCol.classList.add('col-auto', 'p-0');
             this.minimizeButton     = create('button', `container-${this.info.name}-menu-min-btn`, minimizeButtonCol);
             this.minimizeButton.classList.add('min-button-style');
-            const minimizeSymbol =  create('span', ``, this.minimizeButton);
-            style(minimizeSymbol, {width: '30px', height: '5px', borderRadius: '2px', backgroundColor: 'white'})
+            this.minimizeSymbol =  create('span', ``, this.minimizeButton);
+            style(this.minimizeSymbol, {width: '30px', height: '5px', borderRadius: '2px', backgroundColor: 'white'});
+            this.maximizeSymbol =  create('span', ``, this.minimizeButton);
+            this.maximizeSymbol.hidden = true;
+            this.maximizeSymbol.innerHTML = '+';
+            style(this.maximizeSymbol, {width: '30px', height: '30px', lineHeight: '30px', fontSize: '2rem', 
+                fontWeight: 'bold', borderRadius: '2px', backgroundColor: 'rgba(0,0,0,0)', color:'white', padding: 0, margin: 0});
 
             // Add hovering mechanics
             this.element.addEventListener('mouseover', (e) => {
@@ -166,10 +170,32 @@ export class movingContainer {
                 }
             });
 
-            // the onmouseleave
+            // Clear up menu if the cursor leaves the moving container
             this.element.addEventListener('mouseleave', (e) => {
                 this.menuEnabled = false;
                 this.menuContainer.style.opacity = 0;
+            });
+
+            // Add the minimize-button click action
+            this.minimizeButton.addEventListener('click', (e) => {
+                // 
+                if (!this.collapsed) {
+                    this.collapsed   = true;
+                    this.body.hidden = true;
+                    this.minimizeSymbol.hidden = true;
+                    this.maximizeSymbol.hidden = false;
+                    this.element.style.width  = 300 + 'px';
+                    this.element.style.height  = (this.header.offsetHeight + this.menuWrapper.offsetHeight + 20) + 'px';
+                } else {
+                    this.body.hidden = false;
+                    this.collapsed   = false;
+                    this.minimizeSymbol.hidden = false;
+                    this.maximizeSymbol.hidden = true;
+                    this.element.style.width  = this.info.size[0] + 'px';
+                    this.element.style.height  = this.info.size[1] + 'px';
+
+                }
+                
             });
         }
         
@@ -190,15 +216,21 @@ export class movingContainer {
         // Arrow functions preserve `this` object.
         // Define the event listeners correspondingly.
         this.element.addEventListener('mousedown', (e) => {
+            // Raise the element to front if a click happens above it
+            focusContainer(this);
             // Ensure to only click on background or header
-            if (!dragEverywhere && e.target !== this.element && e.target !== this.header) return;
+            if ( !dragEverywhere && 
+                 ( e.target !== this.element && 
+                   e.target !== this.header  && 
+                   e.target !== this.menuWrapper &&
+                   e.target !== this.menuContainer ) ) 
+                return;
             activeContainer = this;
             // Activate dragging on left click action.
             if (e.button === 0) this.draggingActive = true;
             // Set the offset
             this.clickOffset = [e.offsetX, e.offsetY];
-            // Raise the element to front
-            focusContainer(this);
+            
         });
         document.addEventListener('mouseup', (e) => {
             if (activeContainer === this && this.draggingActive) {

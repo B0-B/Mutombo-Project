@@ -162,3 +162,14 @@ html, body {
   justify-content: center;
   cursor: pointer;
 }
+
+.moving-container-element {
+  width: 100px;
+  height: 100px;
+  z-index: 999; /* or 1000 when focused */
+  position: absolute;
+  display: block;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.4);
+  transition: width .6s ease-in-out, height .6s 
+}
