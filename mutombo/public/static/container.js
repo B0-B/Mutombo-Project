@@ -1,17 +1,35 @@
 import { state } from './state.js';
-import { saveContainerState } from './api.js';
+import { saveContainerConfig, saveContainerState } from './api.js';
 import { transition } from './ani.js';
 
+// ======== Automatic Container Loading ========
 /**
  * Places container automatically, according to coordinates in state object.
  * @param {string} containerName - The name of the container e.g. "navigation" 
  */
-export async function autoPlaceContainer (containerName) {
-    const containerInfo = state.dashboard.containers[containerName];
-    const container = document.getElementById(containerInfo.id)
+export function autoPlaceContainer (container) {
+    // Retrieve intended container info from dashboard state
+    const containerInfo = state.dashboard.containers[container.info.name];
     const pos = containerInfo.position;
-    container.style.left = pos[0] + 'px';
-    container.style.top = pos[1] + 'px';
+    // Modify container object
+    container.element.style.left = pos[0] + 'px';
+    container.element.style.top = pos[1] + 'px';
+}
+
+export function autoConfigure (container) {
+    // Source container info from latest state drawn in dashboard
+    const containerInfo = state.dashboard.containers[container.info.name];
+    // Set configuration styling from info object
+    style(container.element, {
+        backgroundColor: containerInfo.config.backgroundColor,
+        webkitBackdropFilter: `blur(${containerInfo.config.blur}px)`, 
+        backdropFilter: `blur(${containerInfo.config.blur}px)`,
+    });
+    // Change collapse state if not in sync
+    if (containerInfo.config.collapsed != container.info.config.collapsed) {
+        container.setCollapseState(containerInfo.config.collapsed);
+        // saveContainerState(container)
+    }
 }
 
 
@@ -35,7 +53,6 @@ export function create (tag, id, parent_id) {
     } 
     return el;
 }
-
 
 /**
  * Downloads a requested file from the server and returns the upload URL.
@@ -64,51 +81,36 @@ export class movingContainer {
 
     constructor (name, size=[200, 200], content="", heading="", dragEverywhere=false, settingsEnabled=true) {
 
-        // Add info parameter
-        this.info = {};
-        this.info.name = name;
-        this.info.id = `moving-container-${name}`;
-        this.info.blur = 2; // background blur in pixel
-        this.info.position = [200, 200];
-        this.info.size = size;
+        // -------- Container Registration --------
+        // Define info object
+        this.info = {
+            name: name,
+            id: `moving-container-${name}`,
+            position: [200, 200],
+            size: size,
+            config: {
+                collapsed: false,
+                blur: 2,
+                backgroundColor: 'rgba(0,0,0,0.4)'
+            }
+        };
 
-        // Object variables
-        this.collapsed = false;
-
-        // Create element.
+        // Create the root element for the moving container.
         this.element = create('span', this.info.id, 'page-dashboard');
-        
-        // Register element in dashboard state.
-        if (name in state.elements)
+
+        // Register element in dashboard state, but check and raise and 
+        // exception if an entry already exists.
+        if (name in state.elements) {
+            this.element.remove(); // remove just created element.
             throw new Error(`Element "${name}" exists already!`);
+        }
+        // Otherwise add to elements object
         state.elements[name] = this.element;
-
-        // Check if the container info was forwarded to state
-        if (!(name in state.dashboard.containers)) {
-            state.dashboard.containers[name] = this.info;
-        }
-            
-        // Otherwise use the persistent state coordinates 
-        else {
-            console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
-            autoPlaceContainer(name);
-        }
-
-        // Style the moving container element
-        this.element.classList.add('moving-container-element', 'rounded', 'contour');
-        style(this.element, {
-            left: this.info.position[0] + 'px',
-            top: this.info.position[1] + 'px',
-            width: this.info.size[0] + 'px',
-            height: this.info.size[1] + 'px',
-            webkitBackdropFilter: `blur(${this.info.blur}px)`, 
-            backdropFilter: `blur(${this.info.blur}px)`,
-        });
-        
 
         // -------- Menu Mechanics --------
         // Container will only contain a menu object if enabled
         if (settingsEnabled) {
+
             const settingsHeight = 30;
             const settingsWidth = 100;
             this.menuEnabled = false;
@@ -162,7 +164,6 @@ export class movingContainer {
                 } 
                 // Cursor is outside the menu range
                 else if (this.menuEnabled) {
-                    
                     console.log('hidden');
                     this.menuEnabled = false;
                     this.menuContainer.style.opacity = 0;
@@ -178,36 +179,48 @@ export class movingContainer {
 
             // Add the minimize-button click action
             this.minimizeButton.addEventListener('click', (e) => {
-                // 
-                if (!this.collapsed) {
-                    this.collapsed   = true;
-                    this.body.hidden = true;
-                    this.minimizeSymbol.hidden = true;
-                    this.maximizeSymbol.hidden = false;
-                    this.element.style.width  = 300 + 'px';
-                    this.element.style.height  = (this.header.offsetHeight + this.menuWrapper.offsetHeight + 20) + 'px';
-                } else {
-                    this.body.hidden = false;
-                    this.collapsed   = false;
-                    this.minimizeSymbol.hidden = false;
-                    this.maximizeSymbol.hidden = true;
-                    this.element.style.width  = this.info.size[0] + 'px';
-                    this.element.style.height  = this.info.size[1] + 'px';
-
-                }
-                
+                this.toggleCollapse(); // toggle the collapse function
+                // saveContainerConfig(this)
+                saveContainerState(this);
             });
         }
         
 
         // -------- Header and Heading ---------
-        // Define header and footer and style
-        this.header = create('div', `container-${this.info.name}-header`, this.element.id);
-        this.body = create('div', `container-${this.info.name}-body`, this.element.id);
+        // Define header and footer to be source-able.
+        this.header = create('div', `container-${this.info.name}-header`, this.element);
+        this.body = create('div', `container-${this.info.name}-body`, this.element);
         this.header.classList.add('moving-container-header');
         this.header.innerHTML=`<h1>${heading}</h1>`;
         this.header.style.color = 'white';
         this.body.innerHTML = content;
+
+        // Style the moving container element
+        this.element.classList.add('moving-container-element', 'rounded', 'contour');
+        style(this.element, {
+            left: this.info.position[0] + 'px',
+            top: this.info.position[1] + 'px',
+            width: this.info.size[0] + 'px',
+            height: this.info.size[1] + 'px',
+            webkitBackdropFilter: `blur(${this.info.config.blur}px)`, 
+            backdropFilter: `blur(${this.info.config.blur}px)`,
+        });
+        
+        
+        // -------- Auto Actions after Build --------
+        // Check if the container info was forwarded to state
+        if (!(name in state.dashboard.containers)) {
+            state.dashboard.containers[name] = this.info;
+        }
+            
+        // Otherwise use the persistent state coordinates 
+        else {
+            console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
+            autoPlaceContainer(this);
+            autoConfigure(this);
+        }
+
+        
         
         // -------- Drag and drop mechanics --------
         this.clickOffset = [0, 0]; // relative mouse position internal element.
@@ -246,10 +259,48 @@ export class movingContainer {
                 this.element.style.top  = `${e.pageY - this.clickOffset[1]}px`;
             }
         });
+    }
+    /**
+     * Toggles the collapse state within the container and the global state object.
+     * @returns {void}
+     */
+    toggleCollapse () {
+        // Switch collapse based on case.
+        if (!this.info.config.collapsed) {
+            this.info.config.collapsed = true;
+            this.body.hidden           = true;
+            this.minimizeSymbol.hidden = true;
+            this.maximizeSymbol.hidden = false;
+            this.element.style.width   = 300 + 'px';
+            this.element.style.height  = (this.header.offsetHeight + this.menuWrapper.offsetHeight + 20) + 'px';
+        } else {
+            this.body.hidden           = false;
+            this.info.config.collapsed = false;
+            this.minimizeSymbol.hidden = false;
+            this.maximizeSymbol.hidden = true;
+            this.element.style.width   = this.info.size[0] + 'px';
+            this.element.style.height  = this.info.size[1] + 'px';
+        }
+        // Denote the resulting container configuration state in global state object.
+        state.dashboard.containers[this.info.name].config.collapsed = this.info.config.collapsed;
+    };
 
-        
-
-
+    setCollapseState (collapsed) {
+        if (collapsed) {
+            this.info.config.collapsed = true;
+            this.body.hidden           = true;
+            this.minimizeSymbol.hidden = true;
+            this.maximizeSymbol.hidden = false;
+            this.element.style.width   = 300 + 'px';
+            this.element.style.height  = (this.header.offsetHeight + this.menuWrapper.offsetHeight + 20) + 'px';
+        } else {
+            this.body.hidden           = false;
+            this.info.config.collapsed = false;
+            this.minimizeSymbol.hidden = false;
+            this.maximizeSymbol.hidden = true;
+            this.element.style.width   = this.info.size[0] + 'px';
+            this.element.style.height  = this.info.size[1] + 'px';
+        }
     }
 }
 
@@ -389,7 +440,8 @@ export function filterTableByValues(table, targetValues, callback, columnIndex =
  */
 export function filterTableByColumn (table, columnIndex, callback) {
     const rows = table.querySelectorAll('tbody tr');
-    if (columnIndex < 0 || columnIndex >= rows.length) throw Error('columnIndex outside bounds.')
+    if (rows.length === 0) return;
+    if (columnIndex < 0 || columnIndex >= rows[0].length) throw Error('columnIndex outside bounds.')
     for (let i = 1; i < rows.length; i++) { // Skip header
         const row = rows[i].querySelectorAll('td');
         const cell = row[columnIndex];

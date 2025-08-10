@@ -173,6 +173,7 @@ const logPath       = path.join(__dirname, 'logs');
         // Container override option
         else if (req.body.mode === 'container') {
             const container_info = req.body.data;
+            console.log('data received', container_info)
             config.state.dashboard.containers[container_info.name] = container_info;
             noteActivity();
             await saveConfig(config); // Save the config persistently.

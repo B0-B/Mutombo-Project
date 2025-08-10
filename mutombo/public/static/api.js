@@ -101,3 +101,22 @@ export function saveContainerState (container) {
         body: JSON.stringify({ mode: 'container', data: container.info })
     });
 }
+
+
+/**
+ * Saves the container configuration.
+ * @param {movingContainer} container - The container which to save.
+ */
+export function saveContainerConfig (container) {
+    // Extract currently set container config from container object in dashboard interface
+    const containerObjectConfig = container.info.config;
+    // Override container config information in global state object
+    state.dashboard.containers[container.info.name].config = containerObjectConfig;
+    // Send change to server
+    // fetch the result from state endpoint
+    fetch('/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'container', data: container.info })
+    });
+}

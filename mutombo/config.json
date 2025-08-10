@@ -7,54 +7,70 @@
         "navigation": {
           "name": "navigation",
           "id": "moving-container-navigation",
-          "blur": 2,
           "position": [
-            43,
-            370
+            48,
+            363
           ],
           "size": [
             300,
             60
-          ]
+          ],
+          "config": {
+            "collapsed": false,
+            "blur": 2,
+            "backgroundColor": "rgba(0,0,0,0.4)"
+          }
         },
         "blocklist": {
           "name": "blocklist",
           "id": "moving-container-blocklist",
-          "blur": 2,
           "position": [
-            1563,
-            740
+            1184,
+            50
           ],
           "size": [
             800,
             500
-          ]
+          ],
+          "config": {
+            "collapsed": false,
+            "blur": 2,
+            "backgroundColor": "rgba(0,0,0,0.4)"
+          }
         },
         "statistics": {
           "name": "statistics",
           "id": "moving-container-statistics",
-          "blur": 2,
           "position": [
-            369,
-            167
+            366,
+            50
           ],
           "size": [
             800,
             950
-          ]
+          ],
+          "config": {
+            "collapsed": true,
+            "blur": 2,
+            "backgroundColor": "rgba(0,0,0,0.4)"
+          }
         },
         "clock": {
           "name": "clock",
           "id": "moving-container-clock",
-          "blur": 2,
           "position": [
-            44,
-            51
+            46,
+            49
           ],
           "size": [
             300,
             300
-          ]
+          ],
+          "config": {
+            "blur": 2,
+            "backgroundColor": "rgba(0,0,0,0)",
+            "collapsed": false
+          }
         }
       }
     }
@@ -81,5 +97,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1754601030472
+  "lastActiveTimestamp": 1754787578514
 }

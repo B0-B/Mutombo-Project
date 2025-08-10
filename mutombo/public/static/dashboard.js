@@ -33,7 +33,7 @@ async function loadNavigation () {
     // Create a search navigation and auto-place it
     let navi = new movingContainer('navigation', [ navWidth, navHeight ], '', '', false, false);
     navi.header.remove();
-    autoPlaceContainer('navigation');
+    autoPlaceContainer(navi);
 
     // Extract body element
     const containerBody = navi.body;
@@ -356,7 +356,7 @@ async function loadBlocklistContainer () {
     
     // Initialize the container frame
     let container = new movingContainer('blocklist', [ 800, 500 ], "", 'Blocklists');
-    autoPlaceContainer('blocklist');
+    autoPlaceContainer(container);
     
     // Load content
     await loadBlocklistContainerContent(container);
@@ -514,10 +514,7 @@ async function loadStatsContainerContent (container) {
             highlight(document.getElementById('log-section-wrapper'));
         });
     });
-    filterTableByColumn(topQueryTable, 2, (cell, row, col) => {
-        const maxShare   = Number( dns.top_queried_domains[0].share.replace('%', '') );
-        // cell.style.fontWeight = 'bold'; 
-    });
+    
 
 
     // -------- Top Blocked Domains Table --------
@@ -664,6 +661,7 @@ async function loadStatsContainerContent (container) {
         scrollbarWidth: 'none', 
         overflowY: 'auto', 
         msOverflowStyle: 'none'});
+    // Define a search routine
     async function searchLogs () {
         if (searchInput.value && searchInput.value.length >= 3 || searchInput.value.length == 0) {
             // Prepare data for logs table
@@ -693,7 +691,6 @@ async function loadStatsContainerContent (container) {
     searchInput.addEventListener('input', async () => {
         searchLogs()
     });
-    
     searchLogs(); // Call once at init
 
 
@@ -733,7 +730,7 @@ async function loadStatsContainer () {
     
     // Initialize the container frame
     let container = new movingContainer('statistics', [ 800, 950 ], "", 'DNS Statistics', false, true);
-    autoPlaceContainer('statistics');
+    autoPlaceContainer(container);
 
     await loadStatsContainerContent(container);
 
@@ -749,7 +746,7 @@ async function loadClockContainer () {
     container.header.remove(); // remove header
     container.body.style.padding = '0';
     container.element.style.backgroundColor = 'rgba(0,0,0,0)'
-    autoPlaceContainer('clock');
+    autoPlaceContainer(container);
 
     await loadClassicClock(container, clockSizeInPx);
 
