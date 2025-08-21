@@ -10,26 +10,35 @@ import { transition } from './ani.js';
 export function autoPlaceContainer (container) {
     // Retrieve intended container info from dashboard state
     const containerInfo = state.dashboard.containers[container.info.name];
-    const pos = containerInfo.position;
+    // const pos = containerInfo.position;
+    let pos;
+    // Modify container object
+    if (containerInfo.config.collapsed) {
+        pos = containerInfo.position.collapsed
+    } else {
+        pos = containerInfo.position.expanded
+    }
     // Modify container object
     container.element.style.left = pos[0] + 'px';
     container.element.style.top = pos[1] + 'px';
+    
 }
 
 export function autoConfigure (container) {
     // Source container info from latest state drawn in dashboard
-    const containerInfo = state.dashboard.containers[container.info.name];
+    const containerConfig = state.dashboard.containers[container.info.name].config;
     // Set configuration styling from info object
     style(container.element, {
-        backgroundColor: containerInfo.config.backgroundColor,
-        webkitBackdropFilter: `blur(${containerInfo.config.blur}px)`, 
-        backdropFilter: `blur(${containerInfo.config.blur}px)`,
+        backgroundColor: containerConfig.backgroundColor,
+        webkitBackdropFilter: `blur(${containerConfig.blur}px)`, 
+        backdropFilter: `blur(${containerConfig.blur}px)`,
     });
     // Change collapse state if not in sync
-    if (containerInfo.config.collapsed != container.info.config.collapsed) {
-        container.setCollapseState(containerInfo.config.collapsed);
-        // saveContainerState(container)
+    if (containerConfig.collapsed != containerConfig.collapsed) {
+        container.setCollapseState(containerConfig.collapsed);
     }
+    // Place container 
+    autoPlaceContainer(container);
 }
 
 
@@ -86,7 +95,10 @@ export class movingContainer {
         this.info = {
             name: name,
             id: `moving-container-${name}`,
-            position: [200, 200],
+            position: {
+                expanded: [200, 200],
+                collapsed: [200, 200]
+            },
             size: size,
             config: {
                 collapsed: false,
@@ -106,6 +118,11 @@ export class movingContainer {
         }
         // Otherwise add to elements object
         state.elements[name] = this.element;
+
+        // Check if the container info was forwarded to state already. Otherwise add it.
+        if (!(name in state.dashboard.containers)) {
+            state.dashboard.containers[name] = this.info;
+        }
 
         // -------- Menu Mechanics --------
         // Container will only contain a menu object if enabled
@@ -184,16 +201,6 @@ export class movingContainer {
                 saveContainerState(this);
             });
         }
-        
-
-        // -------- Header and Heading ---------
-        // Define header and footer to be source-able.
-        this.header = create('div', `container-${this.info.name}-header`, this.element);
-        this.body = create('div', `container-${this.info.name}-body`, this.element);
-        this.header.classList.add('moving-container-header');
-        this.header.innerHTML=`<h1>${heading}</h1>`;
-        this.header.style.color = 'white';
-        this.body.innerHTML = content;
 
         // Style the moving container element
         this.element.classList.add('moving-container-element', 'rounded', 'contour');
@@ -206,19 +213,33 @@ export class movingContainer {
             backdropFilter: `blur(${this.info.config.blur}px)`,
         });
         
+
+        // -------- Header and Heading ---------
+        // Define header and footer to be source-able.
+        this.header = create('div', `container-${this.info.name}-header`, this.element);
+        this.body = create('div', `container-${this.info.name}-body`, this.element);
+        this.header.classList.add('moving-container-header');
+        this.header.innerHTML=`<h1>${heading}</h1>`;
+        this.header.style.color = 'white';
+        this.body.innerHTML = content;
+
+        
+        
         
         // -------- Auto Actions after Build --------
         // Check if the container info was forwarded to state
-        if (!(name in state.dashboard.containers)) {
-            state.dashboard.containers[name] = this.info;
-        }
+        console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
+        autoConfigure(this);
+        // if (!(name in state.dashboard.containers)) {
+        //     state.dashboard.containers[name] = this.info;
+        // }
             
-        // Otherwise use the persistent state coordinates 
-        else {
-            console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
-            autoPlaceContainer(this);
-            autoConfigure(this);
-        }
+        // // Otherwise use the persistent state coordinates 
+        // else {
+        //     console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
+        //     // autoPlaceContainer(this);
+        //     autoConfigure(this);
+        // }
 
         
         
@@ -248,9 +269,16 @@ export class movingContainer {
         document.addEventListener('mouseup', (e) => {
             if (activeContainer === this && this.draggingActive) {
                 this.draggingActive = false;
-                this.info.position = [e.pageX - this.clickOffset[0], e.pageY - this.clickOffset[1]];
+                const finalPosition = [e.pageX - this.clickOffset[0], e.pageY - this.clickOffset[1]];
+                // const rect = this.element.getBoundingClientRect();
+                // const finalPosition = [rect.x, rect.y];
+                if (this.info.config.collapsed) {
+                    this.info.position.collapsed = finalPosition;
+                } else {
+                    this.info.position.expanded = finalPosition;
+                }
                 saveContainerState(this);
-                activeContainer = null; // Clear after save
+                activeContainer = null; // Clear variable after save
             }
         });
         document.addEventListener('mousemove', (e) => {
@@ -281,6 +309,8 @@ export class movingContainer {
             this.element.style.width   = this.info.size[0] + 'px';
             this.element.style.height  = this.info.size[1] + 'px';
         }
+        // Set the new position depending on collapse state
+        autoPlaceContainer(this);
         // Denote the resulting container configuration state in global state object.
         state.dashboard.containers[this.info.name].config.collapsed = this.info.config.collapsed;
     };

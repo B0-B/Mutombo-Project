@@ -88,7 +88,7 @@ export async function loadState () {
 
 
 /**
- * Saves the state of the provided container in global state object.
+ * Saves the state of the provided container in global state object and syncs with server config.
  * @param {movingContainer} container - The container which to save.
  */
 export function saveContainerState (container) {

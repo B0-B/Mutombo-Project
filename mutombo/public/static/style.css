@@ -171,5 +171,7 @@ html, body {
   display: block;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.4);
-  transition: width .6s ease-in-out, height .6s 
+  transition: 
+    width 0.6s ease-in-out, 
+    height 0.6s ease-in-out
 }

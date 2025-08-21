@@ -7,10 +7,16 @@
         "navigation": {
           "name": "navigation",
           "id": "moving-container-navigation",
-          "position": [
-            48,
-            363
-          ],
+          "position": {
+            "expanded": [
+              144,
+              412
+            ],
+            "collapsed": [
+              200,
+              200
+            ]
+          },
           "size": [
             300,
             60
@@ -24,10 +30,16 @@
         "blocklist": {
           "name": "blocklist",
           "id": "moving-container-blocklist",
-          "position": [
-            1184,
-            50
-          ],
+          "position": {
+            "expanded": [
+              463,
+              99
+            ],
+            "collapsed": [
+              464,
+              99
+            ]
+          },
           "size": [
             800,
             500
@@ -41,16 +53,22 @@
         "statistics": {
           "name": "statistics",
           "id": "moving-container-statistics",
-          "position": [
-            366,
-            50
-          ],
+          "position": {
+            "expanded": [
+              464,
+              609
+            ],
+            "collapsed": [
+              200,
+              200
+            ]
+          },
           "size": [
             800,
             950
           ],
           "config": {
-            "collapsed": true,
+            "collapsed": false,
             "blur": 2,
             "backgroundColor": "rgba(0,0,0,0.4)"
           }
@@ -58,18 +76,24 @@
         "clock": {
           "name": "clock",
           "id": "moving-container-clock",
-          "position": [
-            46,
-            49
-          ],
+          "position": {
+            "expanded": [
+              142,
+              100
+            ],
+            "collapsed": [
+              200,
+              200
+            ]
+          },
           "size": [
             300,
             300
           ],
           "config": {
+            "collapsed": false,
             "blur": 2,
-            "backgroundColor": "rgba(0,0,0,0)",
-            "collapsed": false
+            "backgroundColor": "rgba(0,0,0,0.4)"
           }
         }
       }
@@ -90,6 +114,55 @@
         "label": "mixed",
         "date": "08/07/25 21:04",
         "active": true
+      },
+      {
+        "name": "malicious url blocklist (urlhaus)",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt",
+        "label": "security",
+        "date": "08/21/25 22:31",
+        "active": true
+      },
+      {
+        "name": "scam blocklist by durablenapkin",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt",
+        "label": "security",
+        "date": "08/21/25 22:32",
+        "active": true
+      },
+      {
+        "name": "phishing army",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt",
+        "label": "security",
+        "date": "08/21/25 22:33",
+        "active": true
+      },
+      {
+        "name": "adaway default blocklist",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt",
+        "label": "ad",
+        "date": "08/21/25 22:34",
+        "active": true
+      },
+      {
+        "name": "hagezi's windows/office tracker blocklist",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt",
+        "label": "security",
+        "date": "08/21/25 22:35",
+        "active": true
+      },
+      {
+        "name": "hagezi's xiaomi tracker blocklist",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_60.txt",
+        "label": "security",
+        "date": "08/21/25 22:35",
+        "active": true
+      },
+      {
+        "name": "hagezi's encrypted dns/vpn/tor/proxy bypass",
+        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_52.txt",
+        "label": "mixed",
+        "date": "08/21/25 22:36",
+        "active": true
       }
     ]
   },
@@ -97,5 +170,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1754787578514
+  "lastActiveTimestamp": 1755808110108
 }

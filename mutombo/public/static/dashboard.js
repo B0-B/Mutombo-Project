@@ -224,7 +224,7 @@ async function  loadBlocklistContainerContent (container) {
     const blockListWrapper = create('div', 'blocklist-overview', containerBody);
     blockListWrapper.classList.add('row');
     style(blockListWrapper, {
-        maxHeight: '100%',            // Set height threshold
+        maxHeight: '340px',            // Set height threshold
         overflowY: 'scroll',           // Enable vertical scroll
         scrollbarWidth: 'none'         // Hide scrollbar in Firefox
     });
