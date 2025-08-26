@@ -18,6 +18,26 @@ html, body {
   border-color: #28a745;
 }
 
+.red-switch:checked {
+  background-color: #f31655; /* Bootstrap's green */
+  border-color: #f31655;
+  -webkit-box-shadow: 0 0 50px 1px #f31655;
+  box-shadow: 0 0 50px 1px #f31655;
+}
+.crimson-switch {
+  background-color: #ccc !important;
+  border-color: #383838 !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.crimson-switch:checked {
+  background-color: #f3163bff !important;
+  border-color: #ff7373 !important;
+  -webkit-box-shadow: 0 0 10px 1px #f3163bff !important;
+  box-shadow: 0 0 10px 1px #f3163bff !important;
+}
+
 #page-dashboard {
   position: fixed;
   top: 0;
@@ -174,4 +194,11 @@ html, body {
   transition: 
     width 0.6s ease-in-out, 
     height 0.6s ease-in-out
+}
+
+.service-icon {
+  aspect-ratio: 1;
+  width: 50px !important;
+  height: 50px !important;
+  padding: 10px !important;
 }

@@ -32,12 +32,12 @@
           "id": "moving-container-blocklist",
           "position": {
             "expanded": [
-              463,
-              99
+              148,
+              483
             ],
             "collapsed": [
-              464,
-              99
+              200,
+              200
             ]
           },
           "size": [
@@ -55,8 +55,8 @@
           "id": "moving-container-statistics",
           "position": {
             "expanded": [
-              464,
-              609
+              1048,
+              38
             ],
             "collapsed": [
               200,
@@ -89,6 +89,29 @@
           "size": [
             300,
             300
+          ],
+          "config": {
+            "collapsed": false,
+            "blur": 2,
+            "backgroundColor": "rgba(0,0,0,0.4)"
+          }
+        },
+        "services": {
+          "name": "services",
+          "id": "moving-container-services",
+          "position": {
+            "expanded": [
+              458,
+              104
+            ],
+            "collapsed": [
+              200,
+              200
+            ]
+          },
+          "size": [
+            1200,
+            900
           ],
           "config": {
             "collapsed": false,
@@ -170,5 +193,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1755808110108
+  "lastActiveTimestamp": 1756235616830
 }

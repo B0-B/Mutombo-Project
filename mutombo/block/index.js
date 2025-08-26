@@ -1,4 +1,9 @@
-import { loadJSON, log, logDnsInfo, saveConfig, loadConfig, timestamp, sleep } from '#utils';
+import { downloadFavicon, loadJSON, saveJSON,log, logDnsInfo, saveConfig, loadConfig, timestamp, sleep } from '#utils';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class Blocker {
     /**
@@ -18,8 +23,13 @@ export class Blocker {
         this.config                 = config;
         this.blocklists             = config.blocking.blocklists;
         this.blocklistEntryPattern  = /^(\|\|?|@)?[^\s]+?\^(\$[^\s]+)?$/;
+
+        this.servicePath = path.join(__dirname, '../services.json');
+
         // All blocklist files are fetched for all domains they contain and cached in the blocklistSets
         this.cache = {
+            'services': {},
+            'customDomainSet': new Set(), // Add a mutable set of all custom domains coming from disabled services
             'blocklistSets': {}
         }
         // Track statistics
@@ -101,14 +111,90 @@ export class Blocker {
         }
         return false; // No match after scanning all lines
     }
+    /**
+     * Loads all services with their corr. endoints from services.json file.
+     * Afterwards will forward to cache and customDomainSet.
+     * @param {object} blocker - the Blocker() instance. 
+     * @returns {object} services file as json.
+     */
+    async loadAndCacheServices () {
+        // Load the services file as json
+        const services = await loadJSON( this.servicePath );
 
+        // Directly add the services object for persistency faster access to cache
+        this.cache.services = services;
+
+        // Now check for all states, if enabled add the endpoints to custom domain set.
+        var service;
+        for (const serviceDomain in services) {
+            service = services[serviceDomain];
+            if (service.blocked) {
+                await this.blockService(serviceDomain, false);
+            }
+        }
+    }
+    /**
+     * Blocks a service and all its endpoints.
+     * @param {string} serviceDomain The service domain e.g. "facebook.com"
+     * @param {boolean} [save=true] If the service file should be overriden, default is true.
+     */
+    async blockService (serviceDomain, save=true) {
+        // Draw service object
+        const service = this.cache.services[serviceDomain];
+        // Disable the service
+        service.blocked = true;
+        // Add all its endpoints to the customDomainSet
+        for (const endpoint of service.endpoints) {
+            this.cache.customDomainSet.add(endpoint)
+        }
+        // Dump the new state if save flag is enabled
+        if (save) await saveJSON(this.servicePath, this.cache.services);
+    }
+    /**
+     * Unblocks a service and all its endpoints.
+     * @param {string} serviceDomain The service domain e.g. "facebook.com"
+     * @param {boolean} [save=true] If the service file should be overriden, default is true.
+     */
+    async unblockService (serviceDomain, save=true) {
+        // Draw service object
+        const service = this.cache.services[serviceDomain];
+        // Disable the service
+        service.blocked = false;
+        // Add all its endpoints to the customDomainSet
+        for (const endpoint of service.endpoints) {
+            this.cache.customDomainSet.delete(endpoint)
+        }
+        // Dump the new state if save flag is enabled
+        if (save) await saveJSON(this.servicePath, this.cache.services);
+    }
 
     /**
-     * Fast method which checks if a domain exists in any blocklist and thus if it is blocked.
+     * Downloads all service favicon icons in parallel. The function 
+     * blocks until all downloads are finished.
+     * @param {number} [timeOut=1000] timeout of each request
+     */
+    async downloadServiceFavicons (timeOut=1000) {
+        console.log('[Blocker] Download all service favicons ...');
+        const domains = Object.keys(this.cache.services);
+        const downloadTasks = domains.map(domain => downloadFavicon(domain, 'favicon.ico', timeOut));
+        await Promise.all(downloadTasks);
+        console.log('[Blocker] All favicons downloaded.');
+    }
+
+    /**
+     * Fast method which checks if a domain exists in any blocklist, or in the custom domain set 
+     * and thus if it is blocked.
      * @param {object} blocklistObject A blocklist object from config.blocking.blocklists
      * @returns {boolean} truth status on whether the provided domain is blocked.
      */
     blocked (domain) {
+        // Convert to lowercase
+        domain = domain.toLowerCase();
+        // Check for custom domain set
+        if (this.cache.customDomainSet.has(domain)) {
+            return true
+        }
+        // Check if the domain is in any blocklist.
         for (let listName in this.cache.blocklistSets) {
 
             // Leap-frog non-active blocklists

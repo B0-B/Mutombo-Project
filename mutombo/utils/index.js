@@ -1,9 +1,12 @@
 // utils.js (ES Module version)
+import { createWriteStream } from 'fs';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { timeStamp } from 'console';
+import https from 'https';
+import { pipeline } from 'stream/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -121,6 +124,70 @@ export function stripURLtoDomain (URL) {
 }
 
 
+// ============ Service File Functions =============
+/**
+ * Downloads the favicon (if exists) of provided domain into static icons folder.
+ * This method calls itself recursively in case of redirects.
+ * @param {string} domainOrUrl Domain or URL whose icon is of interest
+ * @param {string} [iconFileName='favicon.ico'] the standard icon file name (optional)
+ * @param {number} [timeOut=1000] the max timeout in ms
+ * @returns {Promise} Awaitable promise
+ */
+export async function downloadFavicon(domainOrUrl, iconFileName = 'favicon.ico', timeOut=1000) {
+  // Extract domain and url and form a filepath
+  const isFullUrl = domainOrUrl.startsWith('http');
+  const url = isFullUrl ? domainOrUrl : `https://${domainOrUrl}/${iconFileName}`;
+  const domain = isFullUrl ? new URL(domainOrUrl).hostname : domainOrUrl;
+  const filePath = path.resolve(__dirname, `../public/static/icons/${domain}.ico`);
+  try {
+    // Get image response from provided domain
+    const response = await new Promise((resolve, reject) => {
+      // Set request structure
+      const request = https.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+          }
+        }, (res) => {
+          if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
+            const location =  res.headers.location;
+            if (!location) {
+              reject(new Error(`Redirect with no location header from ${url}`));
+              return;
+            }
+            const redirectUrl = location.startsWith('http') ? location : new URL(location, url).href;
+            console.log(`🔁 Redirecting to: ${redirectUrl}`);
+            // Recursively follow redirect and resolve when done
+            downloadFavicon(redirectUrl, iconFileName, timeOut)
+              .then(resolve)
+              .catch(reject);
+            return;
+          }
+          if (res.statusCode !== 200) {
+            reject(new Error(`Failed to fetch favicon: ${res.statusCode}`));
+          } else {
+            resolve(res);
+          }
+      });
+      // Set request http properties to avoid endless requests.
+      request.on('error', reject);
+      request.setTimeout(timeOut, () => {
+        request.destroy(new Error(`Request to ${url} timed out`));
+        console.error(`❌ Request to ${url} timed out`);
+      });
+    });
+
+    // If response is a stream, pipe it; if it's a Promise (from redirect), await it
+    if (typeof response.pipe === 'function') {
+      const fileStream = createWriteStream(filePath);
+      await pipeline(response, fileStream);
+      console.log(`✅ Favicon saved as ${filePath}`);
+    }
+  } catch (err) {
+    console.error(`Error fetching favicon: ${err.message}`);
+  }
+}
+
+
 // ============ Logging Mechanics =============
 
 /**
@@ -198,6 +265,7 @@ function timeFromLog (log) {
 export function unixTimeFromLog (log) {
   return parseTimestamp(timeFromLog(log));
 }
+
 
 // ============ Statistics =============
 
@@ -319,6 +387,7 @@ export async function analyzeStats (stats, updateTimeMs) {
   }
   
 }
+
 
 // ============= Session Functions =============
 

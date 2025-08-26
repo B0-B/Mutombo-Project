@@ -363,6 +363,104 @@ async function loadBlocklistContainer () {
 
 }
 
+
+// ============ Blocked Services Container ============
+async function  loadServicesContainerContent (container) {
+
+    style(container.element, {backgroundColor: '#383838'})
+
+    let containerBody = container.body;
+    containerBody.innerHTML = '';
+    containerBody.classList.add('container', 'p-0');
+
+    style(containerBody, {
+        maxHeight: '750px',            // Set height threshold
+        overflowY: 'scroll',           // Enable vertical scroll
+        scrollbarWidth: 'none'         // Hide scrollbar in Firefox
+    });
+
+    const flexRow = create('div', 'services-flex-row', containerBody);
+    flexRow.classList.add('row', 'm-0', 'no-gutters');
+    style(flexRow, {width: '100%'});
+    
+    // Load all services object
+    const res = await fetch('/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'get' })
+    });
+
+    const services = await res.json();
+    console.log('services', services);
+
+    // Build service boxes
+    for (const serviceDomain in services) {
+        const service = services[serviceDomain];
+        // image name
+        const hostNameParts = serviceDomain.split('.');
+        const serviceName   = hostNameParts[0];
+        // Create new column object to populate the bootstrap panel
+        const columnBox = create('div', `${serviceDomain}-column-box`, flexRow);
+        columnBox.classList.add('col-3');
+        style(columnBox, {padding: '5px'});
+        // Create service blob
+        const serviceBoxContainer = create('div', '', columnBox);
+        serviceBoxContainer.classList.add('container-fluid', 'p-0', 'rounded');
+        style(serviceBoxContainer, {
+            backgroundColor: '#282828',
+            overflow: 'hidden',
+            padding: '5px'
+        })
+        const serviceRow = create('div', '', serviceBoxContainer);
+        serviceRow.classList.add('row', 'm-0', 'no-gutters');
+        style(serviceRow, {width: '100%'});
+        const serviceIconCol = create('div', `${serviceName}-service-icon`, serviceRow);
+        serviceIconCol.classList.add('col-2', 'p-0');
+        serviceIconCol.innerHTML = `<img class="service-icon" src="icons/${serviceName}.svg" style="filter: saturate(0%);">`;
+        const serviceLabelCol = create('div', `${serviceName}-service-label`, serviceRow);
+        serviceLabelCol.classList.add('col-8', 'd-flex', 'p-0', 'align-items-center');
+        serviceLabelCol.innerHTML = service.name;
+        serviceLabelCol.style.color = '#ddd';
+
+        // Build toggle switch for service
+        const serviceTogglerWrapper = create('div', `${serviceName}-toggler-wrapper`, serviceRow);
+        serviceTogglerWrapper.classList.add('col-2', 'form-check', 'form-switch', 'p-0', 'd-flex', 'align-items-center', 'justify-content-center');
+        const serviceToggler        = create('input', `${serviceName}-toggler`, serviceTogglerWrapper);
+        serviceToggler.classList.add('form-check-input', 'm-0');
+        style(serviceToggler, {boxShadow: 'none', userSelect: 'none'});
+        serviceToggler.type = 'checkbox';
+        serviceToggler.classList.add('crimson-switch');
+        // set default state and add event listener
+        serviceToggler.checked = service.blocked;
+        serviceToggler.addEventListener('change', (event) => {
+            // Extract the activity input
+            const recordedState = event.target.checked;
+            fetch('/services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mode: 'set',
+                    state: recordedState,
+                    domain: serviceDomain
+                })
+            });
+        }); 
+    }
+    
+}
+
+async function  loadServicesContainer () {
+
+    // Initialize the container frame
+    let container = new movingContainer('services', [ 1200, 900 ], "", 'Blocked Services');
+    autoPlaceContainer(container);
+
+    // Load the content into the container
+    await loadServicesContainerContent(container);
+    
+}
+
+
 // ============ Statistics Container ============
 async function loadStatsContainerContent (container) {
     
@@ -911,6 +1009,9 @@ async function loadClassicClock (container, clockSizeInPx) {
 }
 
 
+
+
+
 export async function dashPage (params) {
     
     const app = document.getElementById('app');
@@ -928,6 +1029,7 @@ export async function dashPage (params) {
     loadBlocklistContainer();
     loadStatsContainer();
     loadClockContainer();
+    loadServicesContainer();
 
     // Run a session timeout (on inactivity the server will remove the authentication status)
     sessionTimeoutLoop(5);

@@ -62,7 +62,9 @@ const logPath       = path.join(__dirname, 'logs');
     var rdns        = new RDNS( logPath );
     // Load Blocker Service
     var blocker     = new Blocker( config );
-    await blocker.cacheFromConfig() // Initialize all blocklists from config
+    await blocker.loadAndCacheServices();
+    // await blocker.downloadServiceFavicons(2000); // Downloads all service favicons before the corr. domains get blocked.
+    await blocker.cacheFromConfig(); // Initialize all blocklists from config
 
     // ---- Additional Loops ----
     // Run a dynamic config updater
@@ -283,7 +285,7 @@ const logPath       = path.join(__dirname, 'logs');
         }
 
         // Set mode for injecting data into the config.
-        else if (mode == 'set') {
+        else if (req.body.mode == 'set') {
             if (!req.body.data)
                 return res.json({msg: `/conf-endpoint: "set"-mode requires "data" parameter which was not specified.`, data: {}});
             let current = config;
@@ -362,6 +364,27 @@ const logPath       = path.join(__dirname, 'logs');
 
     });
 
+    // Services Endpoint
+    app.post('/services', async (req, res) => {
+        // Login wall. 
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        // API mode selection
+        console.log('services request:', req.body)
+        if (req.body.mode === 'get') {
+            return res.send(blocker.cache.services)
+        } else if (req.body.mode === 'set') {
+            // Override the blocked state in cached services
+            blocker.cache.services[req.body.domain].blocked = req.body.state;
+            // Dump the state in service file
+            if (req.body.state) {
+                blocker.blockService(req.body.domain, true);
+            } else {
+                blocker.unblockService(req.body.domain, true);
+            }
+            return res.send({status: true})
+        }
+    });
+
     // Download endpoint.
     app.use(express.json());
     app.get('/download/:filename', (req, res) => {
@@ -432,7 +455,5 @@ const logPath       = path.join(__dirname, 'logs');
     server.listen(3000, () => {
         console.log('🚀 HTTP server running at http://localhost:3000');
     });
-
-
 
 })()

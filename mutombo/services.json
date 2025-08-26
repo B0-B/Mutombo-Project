@@ -1,0 +1,527 @@
+{
+  "airbnb.com": {
+    "name": "Airbnb, Inc.",
+    "blocked": true,
+    "endpoints": [
+      "airbnb.com"
+    ]
+  },
+  "alibaba.com": {
+    "name": "Alibaba Group Holding Limited",
+    "blocked": false,
+    "endpoints": [
+      "alibaba.com",
+      "aliexpress.com",
+      "taobao.com",
+      "tmall.com"
+    ]
+  },
+  "amazon.com": {
+    "name": "Amazon.com, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "amazon.com",
+      "aws.amazon.com",
+      "primevideo.com"
+    ]
+  },
+  "apple.com": {
+    "name": "Apple Inc.",
+    "blocked": false,
+    "endpoints": [
+      "apple.com",
+      "icloud.com"
+    ]
+  },
+  "baidu.com": {
+    "name": "Baidu, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "baidu.com",
+      "tieba.baidu.com",
+      "baike.baidu.com",
+      "map.baidu.com",
+      "pan.baidu.com",
+      "baiduvideo.com",
+      "baidumusic.com",
+      "baidutravel.com",
+      "baidunews.com",
+      "baidufanyi.com",
+      "baidugames.com",
+      "baidushop.com",
+      "baidublog.com"
+    ]
+  },
+  "bbc.com": {
+    "name": "British Broadcasting Corporation",
+    "blocked": false,
+    "endpoints": [
+      "bbc.com",
+      "bbc.co.uk"
+    ]
+  },
+  "bitbucket.org": {
+    "name": "Bitbucket Atlassian",
+    "blocked": false,
+    "endpoints": [
+      "bitbucket.org"
+    ]
+  },
+  "blackrock.com": {
+    "name": "BlackRock, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "blackrock.com",
+      "aladdin.blackrock.com",
+      "aladdinstudio.blackrock.com",
+      "api.aladdin.blackrock.com",
+      "adx.aladdin.blackrock.com",
+      "compute.aladdin.blackrock.com",
+      "tools.aladdin.blackrock.com",
+      "data.aladdin.blackrock.com",
+      "developer.aladdin.blackrock.com"
+    ]
+  },
+  "booking.com": {
+    "name": "Booking Holdings Inc.",
+    "blocked": false,
+    "endpoints": [
+      "booking.com"
+    ]
+  },
+  "bytedance.com": {
+    "name": "ByteDance Ltd.",
+    "blocked": false,
+    "endpoints": [
+      "bytedance.com",
+      "developer.bytedance.com",
+      "api.bytedance.com",
+      "volcengine.com",
+      "api.volcengine.com",
+      "chat.bytedance.com",
+      "tts.bytedance.com",
+      "podcast.bytedance.com",
+      "ppt.bytedance.com",
+      "prose.bytedance.com",
+      "prompt.bytedance.com",
+      "mcp.bytedance.com"
+    ]
+  },
+  "canva.com": {
+    "name": "Canva Pty Ltd",
+    "blocked": false,
+    "endpoints": [
+      "canva.com"
+    ]
+  },
+  "cloudflare.com": {
+    "name": "Cloudflare, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "cloudflare.com"
+    ]
+  },
+  "coinbase.com": {
+    "name": "Coinbase Global, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "coinbase.com"
+    ]
+  },
+  "coursera.org": {
+    "name": "Coursera Inc.",
+    "blocked": false,
+    "endpoints": [
+      "coursera.org"
+    ]
+  },
+  "disney.com": {
+    "name": "The Walt Disney Company",
+    "blocked": false,
+    "endpoints": [
+      "marvel.com",
+      "developer.marvel.com",
+      "gateway.marvel.com/v1/public/characters",
+      "gateway.marvel.com/v1/public/comics",
+      "gateway.marvel.com/v1/public/events",
+      "disney.com",
+      "api.disneyapi.dev/character",
+      "api.disneyapi.dev/character/:id",
+      "api.disneyapi.dev/character?name=Mickey%20Mouse",
+      "api.disneyapi.dev/graphql",
+      "disneyplus.com",
+      "starwars.com",
+      "pixar.com",
+      "abc.com",
+      "espn.com",
+      "nationalgeographic.com",
+      "hulu.com",
+      "fxnetworks.com",
+      "searchlightpictures.com",
+      "20thcenturystudios.com",
+      "disneyparks.disney.go.com",
+      "disneycruise.disney.go.com",
+      "shopdisney.com",
+      "disneymusicemporium.com",
+      "disneyjunior.com",
+      "disneychannel.disney.com"
+    ]
+  },
+  "deezer.com": {
+    "name": "Deezer S.A.",
+    "blocked": false,
+    "endpoints": [
+      "deezer.com"
+    ]
+  },
+  "discord.com": {
+    "name": "Discord Inc.",
+    "blocked": false,
+    "endpoints": [
+      "discord.com"
+    ]
+  },
+  "dropbox.com": {
+    "name": "Dropbox, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "dropbox.com"
+    ]
+  },
+  "ebay.com": {
+    "name": "eBay Inc.",
+    "blocked": false,
+    "endpoints": [
+      "ebay.com"
+    ]
+  },
+  "edx.org": {
+    "name": "edX LLC",
+    "blocked": false,
+    "endpoints": [
+      "edx.org"
+    ]
+  },
+  "etsy.com": {
+    "name": "Etsy, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "etsy.com"
+    ]
+  },
+  "facebook.com": {
+    "name": "Facebook, Meta",
+    "blocked": false,
+    "endpoints": [
+      "facebook.com",
+      "messenger.com"
+    ]
+  },
+  "figma.com": {
+    "name": "Figma, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "figma.com"
+    ]
+  },
+  "flipkart.com": {
+    "name": "Flipkart Private Limited",
+    "blocked": false,
+    "endpoints": [
+      "flipkart.com"
+    ]
+  },
+  "glassdoor.com": {
+    "name": "Glassdoor, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "glassdoor.com"
+    ]
+  },
+  "google.com": {
+    "name": "Google LLC",
+    "blocked": false,
+    "endpoints": [
+      "google.com",
+      "gmail.com",
+      "youtube.com",
+      "maps.google.com",
+      "translate.google.com",
+      "drive.google.com",
+      "photos.google.com"
+    ]
+  },
+  "huawei.com": {
+    "name": "Huawei Technologies Co., Ltd.",
+    "blocked": false,
+    "endpoints": [
+      "huawei.com"
+    ]
+  },
+  "instagram.com": {
+    "name": "Meta Platforms, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "instagram.com"
+    ]
+  },
+  "kaspersky.com": {
+    "name": "Kaspersky Lab",
+    "blocked": false,
+    "endpoints": [
+      "kaspersky.com"
+    ]
+  },
+  "line.me": {
+    "name": "LINE Corporation",
+    "blocked": false,
+    "endpoints": [
+      "line.me"
+    ]
+  },
+  "linkedin.com": {
+    "name": "LinkedIn Corporation",
+    "blocked": false,
+    "endpoints": [
+      "linkedin.com"
+    ]
+  },
+  "mail.ru": {
+    "name": "Mail.ru Group",
+    "blocked": false,
+    "endpoints": [
+      "mail.ru",
+      "ok.ru",
+      "cloud.mail.ru"
+    ]
+  },
+  "mcafee.com": {
+    "name": "McAfee Corp.",
+    "blocked": false,
+    "endpoints": [
+      "mcafee.com",
+      "home.mcafee.com",
+      "service.mcafee.com",
+      "download.mcafee.com"
+    ]
+  },
+  "microsoft.com": {
+    "name": "Microsoft Corporation",
+    "blocked": false,
+    "endpoints": [
+      "microsoft.com",
+      "outlook.com",
+      "copilot.microsoft.com",
+      "skype.com",
+      "bing.com",
+      "azure.microsoft.com",
+      "office.com"
+    ]
+  },
+  "netflix.com": {
+    "name": "Netflix, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "netflix.com"
+    ]
+  },
+  "notion.so": {
+    "name": "Notion Labs, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "notion.so"
+    ]
+  },
+  "palantir.com": {
+    "name": "Palantir Technologies Inc.",
+    "blocked": false,
+    "endpoints": [
+      "palantir.com",
+      "foundry.palantir.com",
+      "api.foundry.palantir.com",
+      "docs.foundry.palantir.com",
+      "auth.foundry.palantir.com",
+      "workspace.foundry.palantir.com",
+      "data.foundry.palantir.com",
+      "ontology.foundry.palantir.com"
+    ]
+  },
+  "paypal.com": {
+    "name": "PayPal Holdings, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "paypal.com"
+    ]
+  },
+  "rakuten.co.jp": {
+    "name": "Rakuten Group, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "rakuten.co.jp"
+    ]
+  },
+  "rbc.ru": {
+    "name": "RBC Group",
+    "blocked": false,
+    "endpoints": [
+      "rbc.ru",
+      "kommersant.ru",
+      "ria.ru",
+      "tass.ru"
+    ]
+  },
+  "reuters.com": {
+    "name": "Thomson Reuters Corporation",
+    "blocked": false,
+    "endpoints": [
+      "reuters.com"
+    ]
+  },
+  "shopee.com": {
+    "name": "Sea Group (Shopee)",
+    "blocked": false,
+    "endpoints": [
+      "shopee.com"
+    ]
+  },
+  "slack.com": {
+    "name": "Slack Technologies, LLC",
+    "blocked": false,
+    "endpoints": [
+      "slack.com"
+    ]
+  },
+  "snapchat.com": {
+    "name": "Snap Inc.",
+    "blocked": false,
+    "endpoints": [
+      "snapchat.com"
+    ]
+  },
+  "spotify.com": {
+    "name": "Spotify Technology S.A.",
+    "blocked": false,
+    "endpoints": [
+      "spotify.com"
+    ]
+  },
+  "stripe.com": {
+    "name": "Stripe, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "stripe.com"
+    ]
+  },
+  "telegram.org": {
+    "name": "Telegram Messenger Inc.",
+    "blocked": false,
+    "endpoints": [
+      "telegram.org"
+    ]
+  },
+  "tencent.com": {
+    "name": "Tencent Holdings Ltd.",
+    "blocked": false,
+    "endpoints": [
+      "tencent.com",
+      "qq.com",
+      "wechat.com",
+      "weixin.qq.com"
+    ]
+  },
+  "tiktok.com": {
+    "name": "ByteDance Ltd.",
+    "blocked": false,
+    "endpoints": [
+      "tiktok.com"
+    ]
+  },
+  "x.com": {
+    "name": "X Corp.",
+    "blocked": false,
+    "endpoints": [
+      "twitter.com",
+      "x.com"
+    ]
+  },
+  "twitch.tv": {
+    "name": "Twitch Interactive, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "twitch.tv"
+    ]
+  },
+  "uber.com": {
+    "name": "Uber Technologies, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "uber.com",
+      "ubereats.com"
+    ]
+  },
+  "vk.com": {
+    "name": "VK Company Limited",
+    "blocked": false,
+    "endpoints": [
+      "vk.com",
+      "vkpay.ru"
+    ]
+  },
+  "vimeo.com": {
+    "name": "Vimeo, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "vimeo.com"
+    ]
+  },
+  "whatsapp.com": {
+    "name": "Meta Platforms, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "whatsapp.com",
+      "web.whatsapp.com"
+    ]
+  },
+  "xiaomi.com": {
+    "name": "Xiaomi Corporation",
+    "blocked": false,
+    "endpoints": [
+      "xiaomi.com"
+    ]
+  },
+  "yahoo.com": {
+    "name": "Yahoo Inc.",
+    "blocked": false,
+    "endpoints": [
+      "yahoo.com",
+      "mail.yahoo.com",
+      "finance.yahoo.com",
+      "sports.yahoo.com",
+      "news.yahoo.com",
+      "developer.yahoo.com",
+      "apis.yahoo.com",
+      "weather.yahoo.com",
+      "search.yahoo.com",
+      "login.yahoo.com"
+    ]
+  },
+  "yandex.ru": {
+    "name": "Yandex N.V.",
+    "blocked": false,
+    "endpoints": [
+      "yandex.ru",
+      "yandex.money",
+      "yandex.taxi",
+      "yandex.disk",
+      "yandex.translate",
+      "yandex.maps",
+      "yandex.music",
+      "yandex.market",
+      "yandex.news",
+      "yandex.weather",
+      "yandex.travel",
+      "yandex.games",
+      "yandex.cloud"
+    ]
+  }
+}
