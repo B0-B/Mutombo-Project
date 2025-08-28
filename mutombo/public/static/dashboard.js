@@ -9,7 +9,8 @@ import { create,
          filterTableByColumn,
          setRelativeColumnWidths,
          style,
-         percentToHeatScale } from './container.js';
+         percentToHeatScale, 
+         autoConfigure} from './container.js';
 import { aggregateTimeseriesArray, timesArray } from './timeseries.js';
 import { sessionTimeoutLoop } from './auth.js';
 import { highlight } from './ani.js';
@@ -33,7 +34,7 @@ async function loadNavigation () {
     // Create a search navigation and auto-place it
     let navi = new movingContainer('navigation', [ navWidth, navHeight ], '', '', false, false);
     navi.header.remove();
-    autoPlaceContainer(navi);
+    // autoPlaceContainer(navi);
 
     // Extract body element
     const containerBody = navi.body;
@@ -106,6 +107,9 @@ async function loadNavigation () {
         // window.location.href = searchEngineEndpoint + searchInput.value;
         window.location.href = `${searchEngineEndpoint}?q=${encodeURIComponent(query)}`;
     });
+
+    // auto configure the container
+    // autoConfigure(navi)
 }
 
 async function hashURL (url) {
@@ -356,11 +360,13 @@ async function loadBlocklistContainer () {
     
     // Initialize the container frame
     let container = new movingContainer('blocklist', [ 800, 500 ], "", 'Blocklists');
-    autoPlaceContainer(container);
+    // autoPlaceContainer(container);
     
     // Load content
     await loadBlocklistContainerContent(container);
 
+    // auto configure the container
+    // autoConfigure(container)
 }
 
 
@@ -469,11 +475,14 @@ async function  loadServicesContainerContent (container) {
 async function  loadServicesContainer () {
 
     // Initialize the container frame
-    let container = new movingContainer('services', [ 1200, 900 ], "", 'Blocked Services');
-    autoPlaceContainer(container);
+    let container = await new movingContainer('services', [ 1200, 900 ], "", 'Blocked Services');
+    // autoPlaceContainer(container);
 
     // Load the content into the container
     await loadServicesContainerContent(container);
+
+    // auto configure the container
+    // autoConfigure(container)
     
 }
 
@@ -845,7 +854,7 @@ async function loadStatsContainer () {
     
     // Initialize the container frame
     let container = new movingContainer('statistics', [ 800, 950 ], "", 'DNS Statistics', false, true);
-    autoPlaceContainer(container);
+    // autoPlaceContainer(container);
 
     await loadStatsContainerContent(container);
 
@@ -861,9 +870,12 @@ async function loadClockContainer () {
     container.header.remove(); // remove header
     container.body.style.padding = '0';
     container.element.style.backgroundColor = 'rgba(0,0,0,0)'
-    autoPlaceContainer(container);
+    // autoPlaceContainer(container);
 
     await loadClassicClock(container, clockSizeInPx);
+
+    // auto configure the container
+    autoConfigure(container)
 
 }
 

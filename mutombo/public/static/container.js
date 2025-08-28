@@ -14,13 +14,15 @@ export function autoPlaceContainer (container) {
     let pos;
     // Modify container object
     if (containerInfo.config.collapsed) {
-        pos = containerInfo.position.collapsed
+        pos = containerInfo.position.collapsed;
+        container.info.position.collapsed = pos; // set the value in instance info
     } else {
-        pos = containerInfo.position.expanded
+        pos = containerInfo.position.expanded;
+        container.info.position.expanded = pos; // set the value in instance info
     }
     // Modify container object
     container.element.style.left = pos[0] + 'px';
-    container.element.style.top = pos[1] + 'px';
+    container.element.style.top  = pos[1] + 'px';
     
 }
 
@@ -34,7 +36,7 @@ export function autoConfigure (container) {
         backdropFilter: `blur(${containerConfig.blur}px)`,
     });
     // Change collapse state if not in sync
-    if (containerConfig.collapsed != containerConfig.collapsed) {
+    if (container.settingsEnabled) {
         container.setCollapseState(containerConfig.collapsed);
     }
     // Place container 
@@ -121,11 +123,13 @@ export class movingContainer {
 
         // Check if the container info was forwarded to state already. Otherwise add it.
         if (!(name in state.dashboard.containers)) {
+            console.warn(`Register container "${name}" in state.dashboard.containers as no entry was found yet!`);
             state.dashboard.containers[name] = this.info;
         }
 
         // -------- Menu Mechanics --------
         // Container will only contain a menu object if enabled
+        this.settingsEnabled = settingsEnabled;
         if (settingsEnabled) {
 
             const settingsHeight = 30;
@@ -224,25 +228,6 @@ export class movingContainer {
         this.body.innerHTML = content;
 
         
-        
-        
-        // -------- Auto Actions after Build --------
-        // Check if the container info was forwarded to state
-        console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
-        autoConfigure(this);
-        // if (!(name in state.dashboard.containers)) {
-        //     state.dashboard.containers[name] = this.info;
-        // }
-            
-        // // Otherwise use the persistent state coordinates 
-        // else {
-        //     console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
-        //     // autoPlaceContainer(this);
-        //     autoConfigure(this);
-        // }
-
-        
-        
         // -------- Drag and drop mechanics --------
         this.clickOffset = [0, 0]; // relative mouse position internal element.
         // While the mouse is down on element (left click) and moving update the element position.
@@ -267,7 +252,7 @@ export class movingContainer {
             
         });
         document.addEventListener('mouseup', (e) => {
-            if (activeContainer === this && this.draggingActive) {
+            if (e.target !== this.minimizeButton && activeContainer === this && this.draggingActive) {
                 this.draggingActive = false;
                 const finalPosition = [e.pageX - this.clickOffset[0], e.pageY - this.clickOffset[1]];
                 // const rect = this.element.getBoundingClientRect();
@@ -277,8 +262,10 @@ export class movingContainer {
                 } else {
                     this.info.position.expanded = finalPosition;
                 }
+                // Dump the new position state
                 saveContainerState(this);
-                activeContainer = null; // Clear variable after save
+                // Clear variable after save
+                activeContainer = null; 
             }
         });
         document.addEventListener('mousemove', (e) => {
@@ -287,35 +274,38 @@ export class movingContainer {
                 this.element.style.top  = `${e.pageY - this.clickOffset[1]}px`;
             }
         });
+
+
+        // -------- Auto Actions after Build --------
+        // Check if the container info was forwarded to state
+        console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
+        autoConfigure(this);
+        // if (!(name in state.dashboard.containers)) {
+        //     state.dashboard.containers[name] = this.info;
+        // }
+            
+        // // Otherwise use the persistent state coordinates 
+        // else {
+        //     console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
+        //     // autoPlaceContainer(this);
+        //     autoConfigure(this);
+        // }
     }
     /**
-     * Toggles the collapse state within the container and the global state object.
+     * Toggles the collapse state of the container.
      * @returns {void}
      */
     toggleCollapse () {
-        // Switch collapse based on case.
-        if (!this.info.config.collapsed) {
-            this.info.config.collapsed = true;
-            this.body.hidden           = true;
-            this.minimizeSymbol.hidden = true;
-            this.maximizeSymbol.hidden = false;
-            this.element.style.width   = 300 + 'px';
-            this.element.style.height  = (this.header.offsetHeight + this.menuWrapper.offsetHeight + 20) + 'px';
-        } else {
-            this.body.hidden           = false;
-            this.info.config.collapsed = false;
-            this.minimizeSymbol.hidden = false;
-            this.maximizeSymbol.hidden = true;
-            this.element.style.width   = this.info.size[0] + 'px';
-            this.element.style.height  = this.info.size[1] + 'px';
-        }
-        // Set the new position depending on collapse state
-        autoPlaceContainer(this);
-        // Denote the resulting container configuration state in global state object.
-        state.dashboard.containers[this.info.name].config.collapsed = this.info.config.collapsed;
+        this.setCollapseState(!this.info.config.collapsed);
     };
-
+    /**
+     * Sets a provided collapse state for the moving container in UI. 
+     * The state is handled in global state object and this instance.
+     * @param {boolean} collapsed If true, the container will collapse, otherwise provide false.
+     * @returns {void}
+     */
     setCollapseState (collapsed) {
+        // Container styling
         if (collapsed) {
             this.info.config.collapsed = true;
             this.body.hidden           = true;
@@ -331,6 +321,10 @@ export class movingContainer {
             this.element.style.width   = this.info.size[0] + 'px';
             this.element.style.height  = this.info.size[1] + 'px';
         }
+        // Denote the resulting container configuration state in global state object.
+        state.dashboard.containers[this.info.name].config.collapsed = this.info.config.collapsed;
+        // Set the new position depending on collapse state
+        autoPlaceContainer(this);
     }
 }
 

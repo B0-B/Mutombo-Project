@@ -9,8 +9,8 @@
           "id": "moving-container-navigation",
           "position": {
             "expanded": [
-              144,
-              412
+              99,
+              92
             ],
             "collapsed": [
               200,
@@ -32,12 +32,12 @@
           "id": "moving-container-blocklist",
           "position": {
             "expanded": [
-              460,
-              99
+              463,
+              211
             ],
             "collapsed": [
-              200,
-              200
+              785,
+              94
             ]
           },
           "size": [
@@ -45,7 +45,7 @@
             500
           ],
           "config": {
-            "collapsed": false,
+            "collapsed": true,
             "blur": 2,
             "backgroundColor": "rgba(0,0,0,0.4)"
           }
@@ -56,7 +56,7 @@
           "position": {
             "expanded": [
               461,
-              602
+              218
             ],
             "collapsed": [
               200,
@@ -78,8 +78,8 @@
           "id": "moving-container-clock",
           "position": {
             "expanded": [
-              1276,
-              102
+              140,
+              218
             ],
             "collapsed": [
               200,
@@ -101,12 +101,12 @@
           "id": "moving-container-services",
           "position": {
             "expanded": [
-              32,
-              123
+              466,
+              210
             ],
             "collapsed": [
-              200,
-              200
+              463,
+              96
             ]
           },
           "size": [
@@ -114,7 +114,7 @@
             900
           ],
           "config": {
-            "collapsed": false,
+            "collapsed": true,
             "blur": 2,
             "backgroundColor": "rgba(0,0,0,0.4)"
           }
@@ -193,5 +193,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1756398503929
+  "lastActiveTimestamp": 1756415085028
 }

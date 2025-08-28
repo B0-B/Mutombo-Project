@@ -383,7 +383,7 @@
   },
   "microsoft.com": {
     "name": "Microsoft Corporation",
-    "blocked": true,
+    "blocked": false,
     "endpoints": [
       "microsoft.com",
       "outlook.com",
@@ -403,7 +403,7 @@
   },
   "nintendo.com": {
     "name": "Nintendo Co., Ltd.",
-    "blocked": true,
+    "blocked": false,
     "endpoints": [
       "nintendo.com",
       "www.nintendo.com",
