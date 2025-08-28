@@ -415,12 +415,20 @@ async function  loadServicesContainerContent (container) {
         serviceRow.classList.add('row', 'm-0', 'no-gutters');
         style(serviceRow, {width: '100%'});
         const serviceIconCol = create('div', `${serviceName}-service-icon`, serviceRow);
-        serviceIconCol.classList.add('col-2', 'p-0');
-        serviceIconCol.innerHTML = `<img class="service-icon" src="icons/${serviceName}.svg" style="filter: saturate(0%);">`;
+        serviceIconCol.classList.add('col-3', 'p-0');
+        // style(serviceIconCol, {width: '60px'});
+
         const serviceLabelCol = create('div', `${serviceName}-service-label`, serviceRow);
-        serviceLabelCol.classList.add('col-8', 'd-flex', 'p-0', 'align-items-center');
+        serviceLabelCol.classList.add('col-7', 'd-flex', 'p-0', 'align-items-center');
         serviceLabelCol.innerHTML = service.name;
         serviceLabelCol.style.color = '#ddd';
+        
+
+        const serviceIcon = create('img', '', serviceIconCol);
+        serviceIcon.src = `icons/${serviceName}.svg`;
+        serviceIcon.classList.add('service-icon');
+        serviceIcon.setAttribute("style", "filter: saturate(0%) !important;");
+
 
         // Build toggle switch for service
         const serviceTogglerWrapper = create('div', `${serviceName}-toggler-wrapper`, serviceRow);
@@ -430,11 +438,17 @@ async function  loadServicesContainerContent (container) {
         style(serviceToggler, {boxShadow: 'none', userSelect: 'none'});
         serviceToggler.type = 'checkbox';
         serviceToggler.classList.add('crimson-switch');
-        // set default state and add event listener
+        // Set default state and add event listener
         serviceToggler.checked = service.blocked;
+        if (service.blocked)  serviceIcon.setAttribute("style", "filter: saturate(80%) !important;");
+        // Add event listener for state changes
         serviceToggler.addEventListener('change', (event) => {
             // Extract the activity input
             const recordedState = event.target.checked;
+            // Set the style
+            if (recordedState)  serviceIcon.setAttribute("style", "filter: saturate(80%) !important;");
+            else  serviceIcon.setAttribute("style", "filter: saturate(0%) !important;");
+            // Send the state to server
             fetch('/services', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -445,6 +459,9 @@ async function  loadServicesContainerContent (container) {
                 })
             });
         }); 
+
+        // Collapse container by default
+        container.setCollapseState(true);
     }
     
 }

@@ -1,7 +1,7 @@
 {
   "airbnb.com": {
     "name": "Airbnb, Inc.",
-    "blocked": true,
+    "blocked": false,
     "endpoints": [
       "airbnb.com"
     ]
@@ -53,7 +53,7 @@
     ]
   },
   "bbc.com": {
-    "name": "British Broadcasting Corporation",
+    "name": "BBC",
     "blocked": false,
     "endpoints": [
       "bbc.com",
@@ -80,6 +80,24 @@
       "tools.aladdin.blackrock.com",
       "data.aladdin.blackrock.com",
       "developer.aladdin.blackrock.com"
+    ]
+  },
+  "bloomberg.com": {
+    "name": "Bloomberg L.P.",
+    "blocked": false,
+    "endpoints": [
+      "bloomberg.com",
+      "www.bloomberg.com",
+      "professional.bloomberg.com",
+      "console.bloomberg.com",
+      "api.bloomberg.com",
+      "bpipe.bloomberg.com",
+      "sapi.bloomberg.com",
+      "data.bloomberg.com",
+      "developer.bloomberg.com",
+      "bquant.bloomberg.com",
+      "terminal.bloomberg.com",
+      "adx.bloomberg.com"
     ]
   },
   "booking.com": {
@@ -126,13 +144,6 @@
     "blocked": false,
     "endpoints": [
       "coinbase.com"
-    ]
-  },
-  "coursera.org": {
-    "name": "Coursera Inc.",
-    "blocked": false,
-    "endpoints": [
-      "coursera.org"
     ]
   },
   "disney.com": {
@@ -202,6 +213,44 @@
       "edx.org"
     ]
   },
+  "epicgames.com": {
+    "name": "Epic Games, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "epicgames.com",
+      "www.epicgames.com",
+      "store.epicgames.com",
+      "launcher.epicgames.com",
+      "help.epicgames.com",
+      "support.epicgames.com",
+      "accounts.epicgames.com",
+      "account-public-service-prod03.ol.epicgames.com",
+      "launcher-public-service-prod06.ol.epicgames.com",
+      "tracking.epicgames.com",
+      "accountportal-website-prod07.ol.epicgames.com",
+      "orderprocessor-public-service-ecomprod01.ol.epicgames.com",
+      "friends-public-service-prod06.ol.epicgames.com",
+      "lightswitch-public-service-prod06.ol.epicgames.com",
+      "catalog-public-service-prod06.ol.epicgames.com",
+      "entitlement-public-service-prod08.ol.epicgames.com",
+      "library-service.live.use1a.on.epicgames.com",
+      "datastorage-public-service-liveegs.live.use1a.on.epicgames.com",
+      "download.epicgames.com",
+      "download2.epicgames.com",
+      "download3.epicgames.com",
+      "download4.epicgames.com",
+      "epicgames-download1.akamaized.net",
+      "static-assets-prod.epicgames.com",
+      "store-site-backend-static.ak.epicgames.com",
+      "store-content.ak.epicgames.com",
+      "unrealengine.com",
+      "cdn1.unrealengine.com",
+      "cdn2.unrealengine.com",
+      "developer.epicgames.com",
+      "onlineservices.epicgames.com",
+      "status.epicgames.com"
+    ]
+  },
   "etsy.com": {
     "name": "Etsy, Inc.",
     "blocked": false,
@@ -210,7 +259,7 @@
     ]
   },
   "facebook.com": {
-    "name": "Facebook, Meta",
+    "name": "Facebook",
     "blocked": false,
     "endpoints": [
       "facebook.com",
@@ -259,7 +308,7 @@
     ]
   },
   "instagram.com": {
-    "name": "Meta Platforms, Inc.",
+    "name": "Instagram",
     "blocked": false,
     "endpoints": [
       "instagram.com"
@@ -305,9 +354,36 @@
       "download.mcafee.com"
     ]
   },
+  "meta.com": {
+    "name": "Meta Platforms, Inc.",
+    "blocked": false,
+    "endpoints": [
+      "meta.com",
+      "facebook.com",
+      "www.facebook.com",
+      "developers.facebook.com",
+      "business.facebook.com",
+      "adsmanager.facebook.com",
+      "messenger.com",
+      "instagram.com",
+      "www.instagram.com",
+      "graph.facebook.com",
+      "graph.instagram.com",
+      "whatsapp.com",
+      "www.whatsapp.com",
+      "api.whatsapp.com",
+      "workplace.com",
+      "portal.facebook.com",
+      "threads.net",
+      "meta.ai",
+      "meta.com/quest",
+      "developer.oculus.com",
+      "horizon.meta.com"
+    ]
+  },
   "microsoft.com": {
     "name": "Microsoft Corporation",
-    "blocked": false,
+    "blocked": true,
     "endpoints": [
       "microsoft.com",
       "outlook.com",
@@ -323,6 +399,41 @@
     "blocked": false,
     "endpoints": [
       "netflix.com"
+    ]
+  },
+  "nintendo.com": {
+    "name": "Nintendo Co., Ltd.",
+    "blocked": true,
+    "endpoints": [
+      "nintendo.com",
+      "www.nintendo.com",
+      "nintendo.net",
+      "www.nintendo.net",
+      "nintendowifi.net",
+      "www.nintendowifi.net",
+      "nintendo-europe.com",
+      "www.nintendo-europe.com",
+      "nintendo.com.au",
+      "nintendoswitch.cn",
+      "accounts.nintendo.com",
+      "ec.nintendo.com",
+      "eshop.nintendo.net",
+      "support.nintendo.com",
+      "help.nintendo.com",
+      "developer.nintendo.com",
+      "cdn.nintendo.com",
+      "media.nintendo.com",
+      "status.nintendo.com",
+      "my.nintendo.com",
+      "switch.nintendo.com",
+      "wiiu.nintendo.com",
+      "3ds.nintendo.com",
+      "parentalcontrols.nintendo.com",
+      "mariokarttour.com",
+      "supermariorun.com",
+      "miitomo.com",
+      "pokemonhome.com",
+      "nintendo.co.jp"
     ]
   },
   "notion.so": {
@@ -351,6 +462,32 @@
     "blocked": false,
     "endpoints": [
       "paypal.com"
+    ]
+  },
+  "playstation.com": {
+    "name": "Sony PlayStation",
+    "blocked": false,
+    "endpoints": [
+      "playstation.com",
+      "www.playstation.com",
+      "store.playstation.com",
+      "blog.playstation.com",
+      "id.playstation.com",
+      "my.playstation.com",
+      "direct.playstation.com",
+      "help.playstation.com",
+      "support.playstation.com",
+      "network.playstation.com",
+      "psn.playstation.com",
+      "media.playstation.com",
+      "live.playstation.com",
+      "status.playstation.com",
+      "accounts.playstation.com",
+      "playstation.net",
+      "www.playstation.net",
+      "sonyentertainmentnetwork.com",
+      "gaikai.com",
+      "developer.playstation.com"
     ]
   },
   "rakuten.co.jp": {
@@ -403,6 +540,33 @@
     "blocked": false,
     "endpoints": [
       "spotify.com"
+    ]
+  },
+  "steampowered.com": {
+    "name": "Steam",
+    "blocked": false,
+    "endpoints": [
+      "steampowered.com",
+      "www.steampowered.com",
+      "store.steampowered.com",
+      "support.steampowered.com",
+      "help.steampowered.com",
+      "api.steampowered.com",
+      "developer.steampowered.com",
+      "media.steampowered.com",
+      "checkout.steampowered.com",
+      "partner.steampowered.com",
+      "forums.steampowered.com",
+      "login.steampowered.com",
+      "cdn.steampowered.com",
+      "repo.steampowered.com",
+      "steamcommunity.com",
+      "www.steamcommunity.com",
+      "steamusercontent.com",
+      "steamstatic.com",
+      "steam-chat.com",
+      "steamcontent.com",
+      "steamserver.net"
     ]
   },
   "stripe.com": {
@@ -480,6 +644,37 @@
     "endpoints": [
       "whatsapp.com",
       "web.whatsapp.com"
+    ]
+  },
+  "xbox.com": {
+    "name": "Xbox",
+    "blocked": false,
+    "endpoints": [
+      "xbox.com",
+      "www.xbox.com",
+      "account.xbox.com",
+      "live.xbox.com",
+      "support.xbox.com",
+      "help.xbox.com",
+      "store.xbox.com",
+      "my.xbox.com",
+      "social.xbox.com",
+      "status.xbox.com",
+      "developer.xboxlive.com",
+      "xboxlive.com",
+      "www.xboxlive.com",
+      "xboxservices.com",
+      "xboxab.com",
+      "xboxgamestudios.com",
+      "xboxdesignlab.xbox.com",
+      "xboxclips.com",
+      "xboxdvr.com",
+      "xboxera.com",
+      "xboxachievements.com",
+      "xboxwire.com",
+      "xboxplayanywhere.com",
+      "xboxfeedback.com",
+      "xboxdev.com"
     ]
   },
   "xiaomi.com": {

@@ -169,6 +169,7 @@ export class Blocker {
     }
 
     /**
+     * [Deprecated]
      * Downloads all service favicon icons in parallel. The function 
      * blocks until all downloads are finished.
      * @param {number} [timeOut=1000] timeout of each request
@@ -192,6 +193,7 @@ export class Blocker {
         domain = domain.toLowerCase();
         // Check for custom domain set
         if (this.cache.customDomainSet.has(domain)) {
+            logDnsInfo(domain, 'blocked', null, 'service panel');
             return true
         }
         // Check if the domain is in any blocklist.
