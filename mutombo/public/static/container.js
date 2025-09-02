@@ -280,16 +280,7 @@ export class movingContainer {
         // Check if the container info was forwarded to state
         console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
         autoConfigure(this);
-        // if (!(name in state.dashboard.containers)) {
-        //     state.dashboard.containers[name] = this.info;
-        // }
-            
-        // // Otherwise use the persistent state coordinates 
-        // else {
-        //     console.log('auto-place ' + name + ' at ', state.dashboard.containers[name].position);
-        //     // autoPlaceContainer(this);
-        //     autoConfigure(this);
-        // }
+
     }
     /**
      * Toggles the collapse state of the container.
@@ -325,6 +316,15 @@ export class movingContainer {
         state.dashboard.containers[this.info.name].config.collapsed = this.info.config.collapsed;
         // Set the new position depending on collapse state
         autoPlaceContainer(this);
+    }
+
+    /**
+     * Destroy the container.
+     */
+    destroy () {
+        delete state.elements[this.info.name];
+        delete state.dashboard.containers[this.info.name];
+        this.element.remove();
     }
 }
 

@@ -33,11 +33,11 @@
           "position": {
             "expanded": [
               463,
-              211
+              242
             ],
             "collapsed": [
-              785,
-              94
+              200,
+              200
             ]
           },
           "size": [
@@ -45,7 +45,7 @@
             500
           ],
           "config": {
-            "collapsed": true,
+            "collapsed": false,
             "blur": 2,
             "backgroundColor": "rgba(0,0,0,0.4)"
           }
@@ -55,12 +55,12 @@
           "id": "moving-container-statistics",
           "position": {
             "expanded": [
-              461,
-              218
+              864,
+              225
             ],
             "collapsed": [
-              200,
-              200
+              786,
+              94
             ]
           },
           "size": [
@@ -68,7 +68,7 @@
             950
           ],
           "config": {
-            "collapsed": false,
+            "collapsed": true,
             "blur": 2,
             "backgroundColor": "rgba(0,0,0,0.4)"
           }
@@ -78,8 +78,8 @@
           "id": "moving-container-clock",
           "position": {
             "expanded": [
-              140,
-              218
+              99,
+              176
             ],
             "collapsed": [
               200,
@@ -101,8 +101,8 @@
           "id": "moving-container-services",
           "position": {
             "expanded": [
-              466,
-              210
+              118,
+              490
             ],
             "collapsed": [
               463,
@@ -115,6 +115,29 @@
           ],
           "config": {
             "collapsed": true,
+            "blur": 2,
+            "backgroundColor": "rgba(0,0,0,0.4)"
+          }
+        },
+        "browser": {
+          "name": "browser",
+          "id": "moving-container-browser",
+          "position": {
+            "expanded": [
+              344,
+              718
+            ],
+            "collapsed": [
+              200,
+              200
+            ]
+          },
+          "size": [
+            800,
+            600
+          ],
+          "config": {
+            "collapsed": false,
             "blur": 2,
             "backgroundColor": "rgba(0,0,0,0.4)"
           }
@@ -167,13 +190,6 @@
         "active": true
       },
       {
-        "name": "hagezi's windows/office tracker blocklist",
-        "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt",
-        "label": "security",
-        "date": "08/21/25 22:35",
-        "active": true
-      },
-      {
         "name": "hagezi's xiaomi tracker blocklist",
         "url": "https://adguardteam.github.io/HostlistsRegistry/assets/filter_60.txt",
         "label": "security",
@@ -193,5 +209,5 @@
   "idleTimeoutMin": 60,
   "lastActivityTimestamp": 0,
   "authenticated": true,
-  "lastActiveTimestamp": 1756415085028
+  "lastActiveTimestamp": 1756848952396
 }

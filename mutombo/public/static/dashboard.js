@@ -134,8 +134,9 @@ async function  loadBlocklistContainerContent (container) {
     let containerBody = container.body;
     containerBody.innerHTML = '';
     containerBody.classList.add('container');
-    containerBody.style.paddingLeft = '20px';
-    containerBody.style.paddingRight = '20px';
+    // containerBody.style.padding = 0;
+    // containerBody.style.paddingLeft = '20px';
+    // containerBody.style.paddingRight = '20px';
 
     // Request blocklists from server
     const blocklists = await config('get', 'blocking.blocklists');
@@ -143,9 +144,15 @@ async function  loadBlocklistContainerContent (container) {
 
     // -------- Add New Blocklist Utility --------
     const inputWrapper = create('div', 'blocklists-input-wrapper', containerBody);
-    inputWrapper.classList.add('row', 'justify-content-md-center', 'no-gutters');
-    inputWrapper.style.marginBottom = '20px';
-    inputWrapper.style.marginTop = '20px';
+    inputWrapper.classList.add('row', 'no-gutters', 'rounded');
+    style(inputWrapper, {
+        marginBottom: '20px', 
+        marginTop: '20px', 
+        marginLeft: 0, 
+        marginRight: 0,
+        padding: '10px',
+        backgroundColor: '#3838388e'
+    });
 
     // Input for URL
     const inputCol = create('div', '', inputWrapper);
@@ -158,7 +165,7 @@ async function  loadBlocklistContainerContent (container) {
 
     // Select element for blocklist label selection
     const  selectCol = create('div', '', inputWrapper);
-    selectCol.classList.add('col-4');
+    selectCol.classList.add('col-3');
     const newBlocklistSelect = create('select', 'blocklist-label-select', selectCol);
     newBlocklistSelect.style.width = '100%';
     newBlocklistSelect.style.height = '100%';
@@ -171,7 +178,7 @@ async function  loadBlocklistContainerContent (container) {
     placeholder.selected = true;
     newBlocklistSelect.options.add(placeholder);
     // Add other real selectable labels
-    const labels = ['ad', 'general', 'mixed', 'security', 'other'];
+    const labels = ['ads', 'ads & tracking', 'ads & tracking & malware', 'tracking', 'malware', 'mixed', 'phishing', 'security', 'other'];
     labels.forEach((label) => {
         let option = create('option', `new-blocklist-${label}-option`);
         option.text = label;
@@ -179,20 +186,18 @@ async function  loadBlocklistContainerContent (container) {
         newBlocklistSelect.options.add(option)
     })
 
-    // Add submit button
+    // -------- Submit button --------
     const  submitCol = create('div', '', inputWrapper);
-    submitCol.classList.add('col-2');
+    submitCol.classList.add('col-1');
     const submitButton = create('button', '', submitCol);
     style(submitButton, { border: 0, backgroundColor: '#167adeff', color: '#fff', height: '100%' });
     submitButton.innerHTML = 'Add';
     submitButton.classList.add('rounded-button');
 
-    // Submit routine
-    submitButton.addEventListener('click', async () => {
+    // Create submit routine for the button
+    async function submitBlocklistRoutine (blocklistUrl, blocklistLabel) {
         
-        console.log('submit blocklist url ...')
-        const blocklistUrl   = newBlocklistInput.value;
-        const blocklistLabel = newBlocklistSelect.value;
+        console.log('submit blocklist url ...');
         
         // Send url and label to server
         const response = await (await fetch('/state', {
@@ -203,7 +208,6 @@ async function  loadBlocklistContainerContent (container) {
 
         // Add entry to table
         await sleep(100); // delay to give the server some time to settle
-        // configawait config('get', 'blocking.blocklists');
         await loadBlocklistContainerContent(container);
 
         // Output the server response in input placeholder
@@ -222,7 +226,155 @@ async function  loadBlocklistContainerContent (container) {
         _newBlocklistInput.style.color = originalColor;
         _newBlocklistInput.placeholder = 'blocklist URL ...';
 
+    }
+
+    // Hook the submit routine to the submit button
+    submitButton.addEventListener('click', async () => {
+        
+        console.log('submit blocklist url ...')
+        const blocklistUrl   = newBlocklistInput.value;
+        const blocklistLabel = newBlocklistSelect.value;
+        submitBlocklistRoutine(blocklistUrl, blocklistLabel);
+
     });
+
+    // -------- Browse Button --------
+    // Create browse window
+    const  browseCol = create('div', '', inputWrapper);
+    browseCol.classList.add('col-2');
+    const browseButton = create('button', '', browseCol);
+    style(browseButton, { border: 0, backgroundColor: '#cb901aff', color: '#fff', height: '100%' });
+    browseButton.innerHTML = 'Browse';
+    browseButton.classList.add('rounded-button');
+
+    // Create build routine and hook to browse button
+    browseButton.addEventListener('click', async () => {
+
+        const browseWindow = new movingContainer('browser', [800, 600], '', 'Browse Blocklists', false, false);
+        const body         = browseWindow.body,
+              header       = browseWindow.header;
+
+        // Slip in a bar for the closing button
+        const closeButtonWrapper = create('div');
+        style(closeButtonWrapper, {width: '100%'});
+        header.insertBefore(closeButtonWrapper, header.firstChild);
+        const closeButton = create('div', 'browse-close-button', closeButtonWrapper);
+        closeButton.innerHTML = '✖️';
+        style(closeButton, {fontSize: '2rem', width: '100%', textAlign: 'right'})
+        closeButton.addEventListener('click', () => { browseWindow.destroy() });
+
+        // Request the browse list
+        const browseList = await (await fetch('/blockbrowse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        })).json();
+        console.log('browselist', browseList);
+
+        // Create a container for all browsing elements
+        const browseContainer = create('div', 'browse-container', body);
+        style(browseContainer, {
+            width: '100%',
+            color: '#ddd',
+            maxHeight: '500px',            // Set height threshold
+            overflowY: 'scroll',           // Enable vertical scroll
+            scrollbarWidth: 'none'         // Hide scrollbar in Firefox
+        });
+        browseContainer.classList.add('container', 'p-2'); 
+
+        // Main Header styling
+        style(browseWindow.header, {color: '#808080ff' });
+
+        // Load browsing contents
+        let firstGroup = true;
+        for (const group in browseList) {
+
+            // Create a grouping header
+            const groupHeader = create('h4', 'header', browseContainer);
+            groupHeader.classList.add('row', 'no-gutters');
+            groupHeader.innerHTML = group;
+            style(groupHeader, {color: '#808080ff'});
+
+            // Set padding between rows
+            if (firstGroup) {
+                firstGroup = false;
+                style(groupHeader, {marginTop: 0, marginBottom: '20px', marginLeft: 0, marginRight: 0});
+            } else {
+                style(groupHeader, {marginTop: '50px', marginBottom: '20px', marginLeft: 0, marginRight: 0});
+            }
+
+            // Create the group table with blocklist options
+            const browseTable = createTableFromJSON(browseList[group], browseContainer.id, true, 'hidden');
+            browseTable.classList.add('browse-table');
+
+            // Iterate through rows
+            const rows = browseTable.querySelectorAll('tbody tr');
+            let firstRow = true;
+            for (let row of rows) {
+
+                const rowEntries    = row.querySelectorAll('td');
+                if (rowEntries.length === 0) continue;
+
+                // Give the rows some separator lines
+                style(row, { borderBottom: '1px solid #2d2d2dff', height: '1.5rem' });
+
+                // Set padding between rows
+                if (!firstRow) style(row, {paddingTop: '20ox'});
+                else firstRow = false;
+ 
+                const blockListName = rowEntries[0].textContent;
+
+                // Check if the blocklist is already in the current dashboard list
+                let blocklistSelectedAlready = false;
+                for (const blocklistObj of blocklists) {
+                    const registeredBlocklistName = blocklistObj.name;
+                    if (blockListName.toLowerCase() === registeredBlocklistName.toLowerCase()) {
+                        row.remove(); // remove the row from the list
+                        blocklistSelectedAlready = true;
+                        break
+                    }
+                }
+
+                // Skip all further steps in this loop if the block list row was removed.
+                if (blocklistSelectedAlready) continue;
+
+                // Exchange the source link symbols
+                const url               = rowEntries[1].textContent;
+                rowEntries[1].innerHTML = `<a href="${url}" target="_blank">🏠︎</a>`;
+
+
+                /* -------- Browser Add Button -------- */
+                // Create the "add" button
+                const addButtonCol  = create('td', '', row);
+                const addButton     = create('button', '', addButtonCol);
+                style(addButton, { border: 0, backgroundColor: '#167adeff', color: '#fff', height: '100%', marginTop: '10px', marginBottom: '10px' });
+                addButton.innerHTML = 'Add';
+                addButton.classList.add('rounded-button');
+
+                // Define the add-button action
+                const currentRow = row;
+                addButton.addEventListener('click', () => {
+
+                    // Send the blocklist url to server using the already 
+                    // defined submit function.
+                    submitBlocklistRoutine(url, rowEntries[2].textContent);
+                    
+                    // Finally remove it from the browse table
+                    currentRow.remove();
+                    
+                });
+                
+            }
+
+            setRelativeColumnWidths(browseTable, [0.2, 0.05, 0.15, 0.5, 0.1]);
+
+        }
+
+        style(browseWindow.element, {backgroundColor: '#383838'});
+        focusContainer(browseWindow);
+    })
+
+
 
     // -------- Blocklist Table --------
     const blockListWrapper = create('div', 'blocklist-overview', containerBody);
@@ -301,7 +453,7 @@ async function  loadBlocklistContainerContent (container) {
     }, 4);
 
 
-    // Add an delete/remove-button for each row
+    // Add a delete/remove-button for each row
     const rows = blockListTable.querySelectorAll('tbody tr');
     var headerSkip = true;
     for (let row of rows) {
@@ -1036,9 +1188,6 @@ async function loadClassicClock (container, clockSizeInPx) {
     ticTac();
 
 }
-
-
-
 
 
 export async function dashPage (params) {

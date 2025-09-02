@@ -20,11 +20,15 @@ export class Blocker {
      * @returns {Promise<void>}
      */
     constructor (config) {
+
         this.config                 = config;
         this.blocklists             = config.blocking.blocklists;
         this.blocklistEntryPattern  = /^(\|\|?|@)?[^\s]+?\^(\$[^\s]+)?$/;
 
         this.servicePath = path.join(__dirname, '../services.json');
+
+        // Browsing blocklists section
+        this.blockBrowseList = {};
 
         // All blocklist files are fetched for all domains they contain and cached in the blocklistSets
         this.cache = {
@@ -43,6 +47,40 @@ export class Blocker {
             */
             'requests': {}
         }
+    }
+
+    /**
+     * Fast method which checks if a domain exists in any blocklist, or in the custom domain set 
+     * and thus if it is blocked.
+     * @param {object} blocklistObject A blocklist object from config.blocking.blocklists
+     * @returns {boolean} truth status on whether the provided domain is blocked.
+     */
+    blocked (domain) {
+        // Convert to lowercase
+        domain = domain.toLowerCase();
+        // Check for custom domain set
+        if (this.cache.customDomainSet.has(domain)) {
+            logDnsInfo(domain, 'blocked', null, 'service panel');
+            return true
+        }
+
+        // Check if the domain is in any blocklist.
+        for (let listName in this.cache.blocklistSets) {
+
+            // Leap-frog non-active blocklists
+            if (!this.isActive(listName)) continue;
+
+            // Derive domain set of the current blocklist
+            let set = this.cache.blocklistSets[listName];
+            
+            // Lookup query of domain in domain set of current blocklist
+            if (set.has(domain)) {// sets have fast table lookups
+                // Log at this point as the list name is sourced already
+                logDnsInfo(domain, 'blocked', null, listName);
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -95,6 +133,9 @@ export class Blocker {
         // Remember the blocklist set by its name, now every IP can be quickly sourced from the corr. set.
         this.cache.blocklistSets[blocklistObject.name] = blocklistSet;
 
+        // If the blocklist is activated, add it to the global blocklist set
+        // if (blocklistObject.active) this.addSet(blocklistSet);
+
     }
 
     /**
@@ -111,6 +152,146 @@ export class Blocker {
         }
         return false; // No match after scanning all lines
     }
+
+    /**
+     * Adds new blocklist object derived from url to config and directly sources all domains into the blocker.
+     * @param {object} raw_blocklist_url - A blocklist url.
+     * @param {object} label - A blocklist label for categorization.
+     */
+    async addNewBlockList (raw_blocklist_url, label, title) {
+
+        try {
+
+            // Freshly source the config file (in case of yet not tracked changes)
+            this.config = await loadConfig();
+            this.blocklists = this.config.blocking.blocklists;
+
+            // Skip if the url is already known.
+            for (let list of this.blocklists) {
+                if (list.url == raw_blocklist_url)
+                    throw Error(`The blocklist exists already!`)
+            }
+
+            // Create new blocklist object
+            let blocklistObject = {
+                name: raw_blocklist_url,
+                url: raw_blocklist_url,
+                label: label,
+                date: timestamp(),
+                active: true,
+            }
+
+            // Fetch in plaintext
+            const plaintext         = await (await fetch(raw_blocklist_url)).text();
+
+            // Sanitary checks for format.
+            const blockListFormat   = this.isBlocklist(plaintext);
+            if (!blockListFormat)
+                throw Error('The provided url yields no block list!')
+
+            // If a title is provided it will be applied as the list name.
+            // Otherwise will parse a proper list title from the source.
+            // If no name can be parse will use the first non-empty line of the source.
+            if (title) {
+                blocklistObject.name = title
+            } else {
+                const lines = plaintext.split('\n');
+                let foundTitle = false;
+                for (let line of lines) {
+                    if ((line[0] === '!' || line[0] === '#') && line.toLowerCase().includes('title:')) {
+                        foundTitle = true;
+                        blocklistObject.name = line.toLowerCase().split('title:').slice(-1)[0].trim();
+                        break;
+                    }
+                }
+                if (!foundTitle) {
+                    let line = lines[0], ind = 0;
+                    while (line === '' || line === '\n') {
+                        ind++;
+                        line = lines[ind]
+                    }
+                    blocklistObject.name = line;
+                }
+            }
+            
+
+            // Cache the list right away to be accessible
+            this.cacheBlocklist(blocklistObject, plaintext);
+
+            // Inject to config and save.
+            this.config.blocking.blocklists.push(blocklistObject);
+            await saveConfig(this.config);
+
+            console.log(`Successfully added new blocklist "${blocklistObject.name}".`)
+
+        } catch (error) {
+            
+            console.log(`Failed to add blocklist:\n${error}`);
+            throw Error(error)
+            
+        }
+        
+
+    }
+
+    /**
+     * Removes a blocklist from config and cache permanently.
+     * @param {object} name - Name of the blocklist to remove.
+     * @returns {Promise<void>}
+     */
+    async removeBlockList (name) {
+
+        try {
+
+            // Freshly source the config file (in case of yet not tracked changes)
+            this.config = await loadConfig();
+            this.blocklists = this.config.blocking.blocklists;
+
+            // Iterate through blocklists array.
+            let newBlockLists = [];
+            for (let list of this.blocklists) {
+                if (list.name !== name)
+                    newBlockLists.push(list)
+            }
+
+            // Override cache and config
+            delete this.cache.blocklistSets[name];
+            this.config.blocking.blocklists = newBlockLists;
+            this.blocklists                 = newBlockLists;
+            await saveConfig(this.config);
+
+            console.log(`Successfully removed blocklist "${name}".`)
+
+        } catch (error) {
+            
+            console.log(`Failed to remove blocklist "${name}":\n${error}`)
+
+        }
+    }
+
+    /**
+     * Checks if a registered blocklist with provided name is active or not.
+     * Will draw the result always from instance config.
+     * @param {string} blockListName Name of the blocklist to query.
+     * @returns {boolean} Activity status as boolean
+     */
+    isActive (blockListName) {
+        for (let blocklist of this.config.blocking.blocklists) {
+            if ( blocklist.name === blockListName )
+                return blocklist.active
+        }
+    }
+
+    // -------- Browsable Blocklists --------
+    /**
+     * Loads the browse list into the blocker instance.
+     */
+    async loadBlockBrowseList () {
+        const browsePath = path.join(__dirname, 'browse.json');
+        this.blockBrowseList = await loadJSON(browsePath);
+    }   
+
+    // -------- Services --------
     /**
      * Loads all services with their corr. endoints from services.json file.
      * Afterwards will forward to cache and customDomainSet.
@@ -180,151 +361,6 @@ export class Blocker {
         const downloadTasks = domains.map(domain => downloadFavicon(domain, 'favicon.ico', timeOut));
         await Promise.all(downloadTasks);
         console.log('[Blocker] All favicons downloaded.');
-    }
-
-    /**
-     * Fast method which checks if a domain exists in any blocklist, or in the custom domain set 
-     * and thus if it is blocked.
-     * @param {object} blocklistObject A blocklist object from config.blocking.blocklists
-     * @returns {boolean} truth status on whether the provided domain is blocked.
-     */
-    blocked (domain) {
-        // Convert to lowercase
-        domain = domain.toLowerCase();
-        // Check for custom domain set
-        if (this.cache.customDomainSet.has(domain)) {
-            logDnsInfo(domain, 'blocked', null, 'service panel');
-            return true
-        }
-        // Check if the domain is in any blocklist.
-        for (let listName in this.cache.blocklistSets) {
-
-            // Leap-frog non-active blocklists
-            if (!this.isActive(listName)) continue;
-
-            // Derive domain set of the current blocklist
-            let set = this.cache.blocklistSets[listName];
-            
-            // Lookup query of domain in domain set of current blocklist
-            if (set.has(domain)) {// sets have fast table lookups
-                // Log at this point as the list name is sourced already
-                logDnsInfo(domain, 'blocked', null, listName);
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * Adds new blocklist object derived from url to config and directly sources all domains into the blocker.
-     * @param {object} raw_blocklist_url - A blocklist url.
-     * @param {object} label - A blocklist label for categorization.
-     */
-    async addNewBlockList (raw_blocklist_url, label) {
-
-        try {
-
-            // Freshly source the config file (in case of yet not tracked changes)
-            this.config = await loadConfig();
-            this.blocklists = this.config.blocking.blocklists;
-
-            // Skip if the url is already known.
-            for (let list of this.blocklists) {
-                if (list.url == raw_blocklist_url)
-                    throw Error(`The blocklist exists already!`)
-            }
-
-            // Create new blocklist object
-            let blocklistObject = {
-                name: raw_blocklist_url,
-                url: raw_blocklist_url,
-                label: label,
-                date: timestamp(),
-                active: true,
-            }
-
-            // Fetch in plaintext
-            const plaintext         = await (await fetch(raw_blocklist_url)).text();
-
-            // Sanitary checks for format.
-            const blockListFormat   = this.isBlocklist(plaintext);
-            if (!blockListFormat)
-                throw Error('The provided url yields no block list!')
-
-            // Parse a proper list name
-            const lines = plaintext.split('\n');
-            for (let line of lines) {
-                if ((line[0] === '!' || line[0] === '#') && line.toLowerCase().includes('title:')) {
-                    blocklistObject.name = line.toLowerCase().split('title:').slice(-1)[0].trim();
-                    break;
-                }
-            }
-
-            // Cache the list right away to be accessible
-            this.cacheBlocklist(blocklistObject, plaintext);
-
-            // Inject to config and save.
-            this.config.blocking.blocklists.push(blocklistObject);
-            await saveConfig(this.config);
-
-            console.log(`Successfully added new blocklist "${blocklistObject.name}".`)
-
-        } catch (error) {
-            
-            console.log(`Failed to add blocklist:\n${error}`);
-            throw Error(error)
-            
-        }
-        
-
-    }
-
-    /**
-     * Removes a blocklist from config and cache permanently.
-     * @param {object} name - Name of the blocklist to remove.
-     * @returns {Promise<void>}
-     */
-    async removeBlockList (name) {
-
-        try {
-
-            // Freshly source the config file (in case of yet not tracked changes)
-            this.config = await loadConfig();
-            this.blocklists = this.config.blocking.blocklists;
-
-            // Iterate through blocklists array.
-            let newBlockLists = [];
-            for (let list of this.blocklists) {
-                if (list.name !== name)
-                    newBlockLists.push(list)
-            }
-
-            // Override cache and config
-            delete this.cache.blocklistSets[name];
-            this.config.blocking.blocklists = newBlockLists;
-            this.blocklists                 = newBlockLists;
-            await saveConfig(this.config);
-
-            console.log(`Successfully removed blocklist "${name}".`)
-
-        } catch (error) {
-            
-            console.log(`Failed to remove blocklist "${name}":\n${error}`)
-
-        }
-    }
-
-    /**
-     * Checks if a registered blocklist with provided name is active or not.
-     * Will draw the result always from instance config.
-     * @param {string} blockListName Name of the blocklist to query.
-     * @returns {boolean} Activity status as boolean
-     */
-    isActive (blockListName) {
-        for (let blocklist of this.config.blocking.blocklists) {
-            if ( blocklist.name === blockListName )
-                return blocklist.active
-        }
     }
 }
 

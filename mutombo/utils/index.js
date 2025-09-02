@@ -23,7 +23,7 @@ export const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 /**
  * Loads a JSON file and parses its content
  * @param {string} path - Path to the JSON file
- * @returns {Promise<Object>} - Parsed JSON object
+ * @returns {Promise<object>} - Parsed JSON object
  */
 export async function loadJSON(path) {
   return JSON.parse(await fs.readFile(path, 'utf8'));
@@ -32,7 +32,7 @@ export async function loadJSON(path) {
 /**
  * Saves a JavaScript object as formatted JSON to a file
  * @param {string} path - Destination file path
- * @param {Object} data - JSON object to save
+ * @param {object} data - JSON object to save
  * @returns {Promise<void>}
  */
 export async function saveJSON(path, data) {
@@ -46,7 +46,7 @@ export const configPath = path.join(__dirname, '../config.json')
 /**
  * Saves the config to dedicated file path.
  * This function can be called in all modules and files.
- * @param {Object} config - config JSON-object to save
+ * @param {object} config - config JSON-object to save
  * @returns {Promise<void>}
  */
 export async function saveConfig(config) {
@@ -63,8 +63,8 @@ export async function loadConfig() {
 
 /**
  * Updates the provided config reference or variable object with the newly sourced one.
- * @param {Object} configVariable - config JSON-object which should be updated.
- * @param {Object} updateTimeMs - time interval in which to update the config.
+ * @param {object} configVariable - config JSON-object which should be updated.
+ * @param {object} updateTimeMs - time interval in which to update the config.
  */
 export async function configUpdater (configVariable, updateTimeMs) {
   while (true) {
@@ -91,7 +91,7 @@ export async function configUpdater (configVariable, updateTimeMs) {
 
 /**
  * Hashes a payload with SHA-256 algorithm and returns the hex output.
- * @returns {String}
+ * @returns {string}
  */
 export function _hash (payload) {
     return crypto.createHash('sha256').update(payload).digest('hex')    
@@ -193,7 +193,7 @@ export async function downloadFavicon(domainOrUrl, iconFileName = 'favicon.ico',
 /**
  * A fast timestamp implementation which is useful in large loops and repeated calls.
  * Uses clever zero-padding without calling pad(), padStart() and some slicing. 
- * @returns {String} Timestamp in 'mm-dd-yy HH:MM' format.
+ * @returns {string} Timestamp in 'mm-dd-yy HH:MM' format.
  */
 export function timestamp () {
   const d = new Date();
@@ -208,7 +208,7 @@ export function timestamp () {
 
 /**
  * A custom timestamp parser which is suitable for timestamp() function.
- * @returns {String} Timestamp in unix time in milliseconds.
+ * @returns {string} Timestamp in unix time in milliseconds.
  */
 export function parseTimestamp(str) {
   const [datePart, timePart] = str.split(' ');
@@ -252,7 +252,7 @@ export async function logDnsInfo (domain, status, ip=null, blocklistName=null) {
 }
 
 /**
- * @returns {String} Timestamp in string format 'mm-dd-yy HH:MM' from single log entry. 
+ * @returns {string} Timestamp in string format 'mm-dd-yy HH:MM' from single log entry. 
  */
 function timeFromLog (log) {
   return log.split('\t')[0];
@@ -419,6 +419,7 @@ export async function sessionWatchdog (config, updateTimeMs) {
 
 /**
  * Updates the config timestamp in config object. 
+ * @param {object} config config object
  */
 export function noteActivity (config) {
   if (config) config.lastActiveTimestamp = Date.now()

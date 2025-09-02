@@ -63,6 +63,7 @@ const logPath       = path.join(__dirname, 'logs');
     // Load Blocker Service
     var blocker     = new Blocker( config );
     await blocker.loadAndCacheServices();
+    await blocker.loadBlockBrowseList();
     // await blocker.downloadServiceFavicons(2000); // Downloads all service favicons before the corr. domains get blocked.
     await blocker.cacheFromConfig(); // Initialize all blocklists from config
 
@@ -300,6 +301,18 @@ const logPath       = path.join(__dirname, 'logs');
             current[keyChain[keyChain.length-1]] = req.body.data;
             saveConfig(config);
         }
+        
+    });
+
+    // Endpoint for delivering blocklist browse list.
+    app.use(express.json());
+    app.post('/blockbrowse', async (req, res) => {
+        
+        // Login wall. 
+        if (!config.authenticated) return res.json({msg: '[ERROR] Permission denied: No authentication'})
+        
+        // Check if mode parameter was specified
+        return res.send(blocker.blockBrowseList)
         
     });
 
